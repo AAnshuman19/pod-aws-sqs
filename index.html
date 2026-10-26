@@ -1,5 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Queue Commander: a playable AWS SQS + EKS scaling simulator. Nothing here touches AWS.">
+<meta name="color-scheme" content="dark">
 <title>Queue Commander</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
@@ -223,6 +229,9 @@ canvas{background:transparent;border-radius:12px}
 @media (max-width:520px){.brand h1{font-size:22px}.rchip{padding-left:50px}.rchip::before{left:10px;width:28px;height:28px;margin-top:-14px}}
 
 </style>
+</head>
+<body>
+<div id="nojs" style="background:#FFD25A;color:#0A0A2C;font:600 15px/1.4 system-ui,sans-serif;padding:12px 16px;text-align:center">This game needs JavaScript. If you only see a static page, open this file or link in a real browser (Chrome, Safari, Firefox, Edge) instead of a file previewer or in-app viewer.</div>
 <canvas id="stars" aria-hidden="true"></canvas>
 <div class="app">
 <header class="top">
@@ -1693,3 +1702,6 @@ window.__qc = { G: G, loadRound: loadRound, onAct: onAct, finishRound: finishRou
 })();
 
 </script>
+<script>try{var nj=document.getElementById("nojs");if(window.QC&&window.__qc&&nj)nj.hidden=true;else if(nj)nj.textContent="The game script failed to start. Please open this page in an up-to-date Chrome, Safari or Firefox.";}catch(e){}</script>
+</body>
+</html>
