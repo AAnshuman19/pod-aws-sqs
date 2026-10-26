@@ -1,0 +1,1695 @@
+<title>Queue Commander</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#0A0F1E;--panel:#111833;--panel2:#18214A;--line:#2D3A70;--text:#F0F0FF;--text2:#D2D6F5;
+  --orange:#FF9900;--cyan:#38D6FF;--green:#5CF2A0;--red:#FF7A88;--amber:#FFD25A;--violet:#B79CFF;
+  --ink:#0A0A2C;--fd:'Chakra Petch',system-ui,sans-serif;--fb:'IBM Plex Sans',system-ui,sans-serif;--fm:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:auto}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.55;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
+.app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--fd);margin:0;text-wrap:balance;letter-spacing:.2px}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.mono{font-family:var(--fm);font-variant-numeric:tabular-nums}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:42px;height:42px;border-radius:10px;background:var(--orange);color:var(--ink);font-family:var(--fd);font-weight:700;font-size:20px;display:grid;place-items:center;flex:none}
+.brand h1{font-size:24px;line-height:1.1;font-weight:700}
+.brand p{font-size:13px;color:var(--text2)}
+.hud{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;display:inline-flex;gap:8px;align-items:center;white-space:nowrap}
+.pill b{font-family:var(--fm);font-weight:500;font-variant-numeric:tabular-nums}
+.xpbar{width:64px;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--green);width:0}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 14px;font-weight:500;font-size:14px;display:inline-flex;align-items:center;gap:8px;min-height:40px}
+.btn:hover{border-color:var(--cyan)}
+.btn.primary{background:var(--orange);border-color:var(--orange);color:#111111;font-weight:600}
+.btn.primary:hover{background:#FFB033}
+.btn.real{background:var(--cyan);border-color:var(--cyan);color:var(--ink);font-weight:600}
+.btn.real:hover{background:#7BE5FF}
+.btn.warn{border-color:var(--red)}
+.btn.small{padding:5px 10px;min-height:32px;font-size:13px}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+
+.rounds{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.rchip{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rchip .n{font-family:var(--fd);font-size:12px;color:var(--text2);letter-spacing:.8px}
+.rchip .t{font-weight:600;font-size:14px;line-height:1.25}
+.rchip .s{font-size:12px;color:var(--text2);display:flex;gap:6px;align-items:center;font-family:var(--fm)}
+.rchip.on{border-color:var(--orange);background:var(--panel2)}
+.rchip.lock{opacity:.55;cursor:not-allowed}
+.star{color:var(--amber)}
+.star.off{color:var(--line)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.card h2{font-size:18px;margin-bottom:6px}
+.mission h2{font-size:22px}
+.mission .sc{color:var(--text2);margin:6px 0 10px;max-width:78ch}
+.mission .goal{background:var(--panel2);border-radius:10px;padding:10px 12px;font-size:14px;max-width:78ch}
+.mission .goal b{font-weight:600;color:var(--amber)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-family:var(--fm);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--text2)}
+
+.ctl{display:flex;flex-direction:column;gap:12px}
+.crow{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.cgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cgroup>label,.clab{font-size:13px;color:var(--text2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:transparent;border:0;border-right:1px solid var(--line);padding:7px 11px;min-height:36px;font-size:13px;font-family:var(--fm)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--cyan);color:var(--ink);font-weight:600}
+.step{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{background:var(--panel2);border:0;width:40px;height:38px;font-size:20px;line-height:1}
+.step button:hover{background:var(--line)}
+.step span{min-width:44px;text-align:center;font-family:var(--fm);font-size:17px;font-weight:500}
+.tog{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.tog input{position:absolute;opacity:0;width:1px;height:1px}
+.tog .sw{width:40px;height:22px;border-radius:11px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.tog .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--text);transition:transform .15s}
+.tog input:checked+.sw{background:var(--green)}
+.tog input:checked+.sw::after{transform:translateX(18px);background:var(--ink)}
+.tog input:focus-visible+.sw{outline:2px solid var(--cyan);outline-offset:2px}
+.hint{font-size:13px;color:var(--text2);background:var(--panel2);border-radius:10px;padding:8px 12px}
+.hint b{color:var(--text);font-weight:600}
+input[type=range]{accent-color:var(--cyan);width:140px}
+
+.fb{display:flex;gap:10px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px;min-height:46px}
+.fb i{font-size:18px;margin-top:2px;flex:none;font-style:normal;font-family:var(--fm);font-weight:700}
+.fb.good i{color:var(--green)}.fb.bad i{color:var(--red)}.fb.info i{color:var(--cyan)}.fb.warn i{color:var(--amber)}
+
+.clusters{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.cluster{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.chead h3{font-size:16px}
+.status{font-family:var(--fm);font-size:12px;border-radius:6px;padding:2px 8px;background:var(--panel2);border:1px solid var(--line)}
+.status.ok{color:var(--green);border-color:var(--green)}.status.bad{color:var(--red);border-color:var(--red)}.status.warn{color:var(--amber);border-color:var(--amber)}
+canvas{display:block;width:100%;border-radius:10px}
+.cfg{font-family:var(--fm);font-size:12px;color:var(--text2);margin:8px 0;display:flex;flex-wrap:wrap;gap:4px 12px}
+.cfg b{color:var(--violet);font-weight:500}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.mt{background:var(--panel2);border-radius:10px;padding:8px 10px;min-width:0}
+.mt .l{font-size:12px;color:var(--text2);line-height:1.25}
+.mt .v{font-family:var(--fm);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.25;overflow-wrap:anywhere}
+.mt .u{font-size:11px;color:var(--text2);font-family:var(--fm);overflow-wrap:anywhere}
+.c-or{color:var(--orange)}.c-am{color:var(--amber)}.c-cy{color:var(--cyan)}.c-gr{color:var(--green)}.c-rd{color:var(--red)}.c-vi{color:var(--violet)}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--text2);margin:2px 0 8px}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
+.legend i.d{border-top-style:dashed}
+
+.two{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.log{max-height:230px;overflow:auto;font-size:13px;display:flex;flex-direction:column;gap:2px;font-family:var(--fm)}
+.log div{display:grid;grid-template-columns:48px 1fr;gap:8px;padding:3px 0;border-bottom:1px solid var(--line)}
+.log .tm{color:var(--text2)}
+.log .crash,.log .error,.log .dlq{color:var(--red)}.log .expire{color:var(--amber)}.log .scale,.log .burst{color:var(--violet)}.log .you{color:var(--green)}.log .pod{color:var(--cyan)}
+.dlqlist{display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow:auto}
+.dm{font-family:var(--fm);font-size:12px;border-radius:6px;padding:3px 8px;border:1px solid var(--red);color:var(--text)}
+.dm.good{border-color:var(--amber);background:rgba(255,210,90,.12)}
+.dm small{color:var(--text2)}
+
+table.cmp{width:100%;border-collapse:collapse;font-size:14px}
+table.cmp th,table.cmp td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--fm);font-variant-numeric:tabular-nums}
+table.cmp th:first-child,table.cmp td:first-child{text-align:left;font-family:var(--fb)}
+table.cmp th{font-weight:500;color:var(--text2);font-size:12px}
+.win{color:var(--green);font-weight:600}
+.scroll-x{overflow-x:auto}
+
+.debrief h2{font-size:22px}
+.dgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:12px 0}
+.dsec h4{margin:0 0 3px;font-family:var(--fd);font-size:13px;color:var(--orange);letter-spacing:.8px;font-weight:600}
+.dsec p{font-size:14px;max-width:70ch}
+.dsec code,.hint code,.fb code{font-family:var(--fm);font-size:12.5px;background:var(--panel2);border-radius:4px;padding:1px 5px}
+.bars{display:grid;gap:8px;margin:10px 0}
+.bar{display:grid;grid-template-columns:130px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:13px}
+.bar .tr{height:10px;background:var(--panel2);border-radius:5px;overflow:hidden}
+.bar .tr i{display:block;height:100%;background:var(--cyan)}
+.bar .pc{font-family:var(--fm);text-align:right}
+.big{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.big .num{font-family:var(--fd);font-size:44px;font-weight:700;color:var(--orange);line-height:1}
+.grade{font-family:var(--fd);font-size:56px;font-weight:700;color:var(--green);line-height:1}
+.ach{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:10px}
+.ach div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.ach div.got{border-color:var(--green)}
+.ach div b{display:block;font-weight:600}
+.ach div span{color:var(--text2);font-size:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--green);color:var(--ink);border-radius:10px;padding:10px 16px;font-weight:600;z-index:20;max-width:92vw}
+
+details.note{font-size:13px;color:var(--text2)}
+details.note summary{cursor:pointer;color:var(--text)}
+details.note ul{margin:8px 0 0;padding-left:20px}
+
+/* guide */
+.guide{display:flex;flex-direction:column;gap:14px}
+.gnav{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:8px 0;z-index:5}
+.gnav button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;min-height:32px}
+.gnav button:hover{border-color:var(--cyan)}
+.guide section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;scroll-margin-top:60px}
+.guide h2{font-size:20px;margin-bottom:8px}
+.guide h2 span{font-family:var(--fm);color:var(--orange);margin-right:8px}
+.guide p,.guide li{max-width:78ch;font-size:14.5px}
+.guide ul,.guide ol{margin:8px 0;padding-left:22px;display:grid;gap:4px}
+.guide p+p{margin-top:8px}
+.disc{background:var(--panel2);border:1px solid var(--amber);border-radius:12px;padding:12px 14px;font-size:14px}
+.codewrap{position:relative;margin:10px 0}
+.codewrap pre{margin:0;background:#070B18;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;font-family:var(--fm);font-size:12.5px;line-height:1.5;color:var(--text);tab-size:2}
+.codewrap .cap{font-size:12px;color:var(--text2);margin-bottom:4px;font-family:var(--fm)}
+.codewrap button{position:absolute;top:24px;right:8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-size:12px;min-height:28px}
+.diagram{width:100%;max-width:560px;display:block;margin:10px auto}
+.diagram text:not([fill]){font-family:var(--fb);fill:var(--text)}
+table.gt{width:100%;border-collapse:collapse;font-size:13.5px}
+table.gt th,table.gt td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.gt th{color:var(--text2);font-weight:500;font-size:12px}
+table.gt code{font-family:var(--fm);font-size:12px}
+
+@media (min-width:760px){
+  .metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .clusters.dual{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .clusters.dual .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:420px){
+  .bar{grid-template-columns:100px minmax(0,1fr) 40px}
+  .brand h1{font-size:21px}
+  .big .num{font-size:36px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+[hidden]{display:none!important}
+
+/* ===== Cosmic theme layer (high contrast kept) ===== */
+:root{--bg:#050818;--panel:rgba(14,20,52,.78);--panel2:rgba(28,38,92,.72);--line:rgba(120,140,255,.38);--glow:rgba(120,160,255,.22)}
+body{background:#050818;position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+   radial-gradient(900px 520px at 85% -8%,rgba(150,90,255,.30),transparent 62%),
+   radial-gradient(760px 480px at 8% 18%,rgba(40,170,255,.22),transparent 60%),
+   radial-gradient(900px 600px at 55% 108%,rgba(255,120,60,.16),transparent 60%),
+   linear-gradient(180deg,#050818,#0A0F2C 55%,#060A1E)}
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block;background:transparent!important;border-radius:0!important}
+.card,.cluster,.fb,.rchip,.pill,.hint,.mt{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.card,.cluster{border-color:var(--line);box-shadow:0 0 0 1px rgba(255,255,255,.03) inset,0 10px 40px -18px rgba(90,110,255,.55)}
+.brand{gap:20px}.logo{border-radius:50%;background:radial-gradient(circle at 32% 28%,#FFD27A,#FF9900 55%,#B34700);box-shadow:0 0 22px rgba(255,153,0,.55);position:relative;color:#0A0A2C}
+.logo::after{content:"";position:absolute;left:-9px;right:-9px;top:50%;height:12px;margin-top:-6px;border:2px solid rgba(120,220,255,.85);border-radius:50%;transform:rotate(-18deg);pointer-events:none}
+.brand h1{font-size:26px;background:linear-gradient(90deg,#FFFFFF,#BFD4FF 55%,#FFD9A0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p{color:#D9DEFF}
+.btn.primary{background:linear-gradient(135deg,#FFB33D,#FF8A00);border-color:#FFB33D;box-shadow:0 0 18px rgba(255,153,0,.45)}
+.btn.real{background:linear-gradient(135deg,#6FE6FF,#38A8FF);border-color:#6FE6FF;box-shadow:0 0 18px rgba(56,214,255,.45)}
+.btn,.seg,.step{border-radius:999px}
+.seg button.on{background:linear-gradient(135deg,#6FE6FF,#38A8FF)}
+.rchip{position:relative;padding-left:56px;overflow:hidden}
+.rchip::before{content:"";position:absolute;left:12px;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:50%;
+  background:radial-gradient(circle at 30% 28%,#fff,var(--pc,#6FE6FF) 45%,#0A0F2C 120%);box-shadow:0 0 16px var(--pc,#6FE6FF)}
+.rchip:nth-child(1){--pc:#38D6FF}.rchip:nth-child(2){--pc:#FFB347}.rchip:nth-child(3){--pc:#FF7A88}.rchip:nth-child(4){--pc:#B79CFF}
+.rchip.on{box-shadow:0 0 0 1px var(--pc) inset,0 0 24px -6px var(--pc)}
+.rchip.lock::before{filter:grayscale(1) brightness(.7);box-shadow:none}
+.mission h2{background:linear-gradient(90deg,#fff,#CFE0FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mission .goal{border-left:3px solid var(--amber)}
+canvas{background:transparent;border-radius:12px}
+.cvwrap{border-radius:14px;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,rgba(80,100,255,.18),rgba(5,8,24,.65) 70%);border:1px solid rgba(120,140,255,.25)}
+.mt{border:1px solid rgba(120,140,255,.22)}
+.pill{border-color:var(--line)}
+.xpbar i{background:linear-gradient(90deg,#5CF2A0,#38D6FF)}
+.status{border-radius:999px}
+@media (prefers-reduced-motion:reduce){#stars{display:none}}
+@media (max-width:520px){.brand h1{font-size:22px}.rchip{padding-left:50px}.rchip::before{left:10px;width:28px;height:28px;margin-top:-14px}}
+
+</style>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="app">
+<header class="top">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">QC</div>
+    <div><h1>Queue Commander</h1><p>SQS + EKS scaling challenge. A simulation, nothing here touches AWS.</p></div>
+  </div>
+  <div class="hud">
+    <span class="pill">Level <b id="lvl">1</b><span class="xpbar" aria-hidden="true"><i id="xpb"></i></span><b id="xp">0 XP</b></span>
+    <span class="pill">Score <b id="tot">0</b></span>
+    <button class="pill" id="btnAch" type="button" aria-label="Achievements">Trophies <b id="achN">0/10</b></button>
+    <button class="btn real" id="btnReal" type="button">How it works for real</button>
+  </div>
+</header>
+
+<div id="gameView" class="app" style="gap:14px">
+  <nav class="rounds" id="rounds" aria-label="Rounds"></nav>
+
+  <section class="card mission" id="mission"></section>
+
+  <section class="card ctl" id="controls" aria-label="Controls"></section>
+
+  <div class="fb info" id="fb" role="status" aria-live="polite"><i>i</i><span id="fbt">Press Start, then change settings while the simulation runs. Every action explains what it did.</span></div>
+
+  <div class="clusters" id="clusters"></div>
+
+  <section class="card" id="cmpCard" hidden>
+    <h2 id="cmpTitle">Side by side</h2>
+    <div class="scroll-x"><table class="cmp" id="cmp"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Queue depth and pods over time</h2>
+    <div class="legend" id="legend"></div>
+    <canvas id="chart" aria-label="Line chart of queue depth and running pods over simulated time" role="img"></canvas>
+  </section>
+
+  <div class="two">
+    <section class="card"><h2>Live event log</h2><div class="log" id="log" aria-live="off"></div></section>
+    <section class="card" id="sideCard"><h2 id="sideTitle">Notes</h2><div id="side"></div></section>
+  </div>
+
+  <section class="card debrief" id="debrief" hidden></section>
+  <section class="card debrief" id="final" hidden></section>
+
+  <details class="note card">
+    <summary>What this simulation simplifies</summary>
+    <ul>
+      <li>Time advances in 0.25 s steps from a fixed seed, so the same settings give the same result. Nothing here is AWS telemetry.</li>
+      <li>One standard queue, one message at a time per pod (round 4 batches 10). Real SQS also has long polling, delay queues, FIFO ordering and per-request pricing.</li>
+      <li>A message received by a pod stays hidden until the visibility timeout. A late delete is accepted only if no other pod holds the message. Real SQS treats stale receipt handles less predictably, which is one more reason to be idempotent.</li>
+      <li>KEDA and HPA are collapsed into one loop: each polling interval it reads visible plus in-flight messages, divides by queueLength, and adds at most max(4, current) pods per interval. Scale-in waits for the cooldown. Real HPA has its own sync period and stabilization windows.</li>
+      <li>Costs use a made-up rate of $1.20 per pod-hour so you can compare choices. They are not AWS prices.</li>
+    </ul>
+  </details>
+</div>
+
+<div id="guideView" class="guide" hidden>
+  <div class="top">
+    <h1 style="font-size:26px">How it works for real</h1>
+    <button class="btn primary" id="btnBack" type="button">Back to the game</button>
+  </div>
+  <div class="disc"><b>This game is a simulation.</b> It does not create, read or change any AWS resource and needs no credentials. The configuration below shows how the same ideas look on a real EKS cluster. Every account ID, region, queue URL, role ARN and cluster name is a placeholder in angle brackets. Never commit real credentials, and check each snippet against the versions of EKS, KEDA and the AWS CLI you run.</div>
+  <nav class="gnav" id="gnav" aria-label="Walkthrough sections"></nav>
+
+  <section id="g1">
+    <h2><span>1</span>Architecture</h2>
+    <p>Producers write to SQS. KEDA watches the queue length and drives a Horizontal Pod Autoscaler, which resizes the worker Deployment. Workers pull messages themselves; SQS never pushes.</p>
+    <svg class="diagram" viewBox="0 0 480 470" role="img" aria-label="Architecture: producers send to SQS, KEDA reads queue attributes and drives HPA which scales the worker deployment, workers receive and delete messages, failures go to a dead-letter queue">
+      <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#D2D6F5"/></marker></defs>
+      <g fill="none" stroke="#D2D6F5" stroke-width="1.6" marker-end="url(#ah)">
+        <path d="M240 56 V90"/>
+        <path d="M330 117 H358" stroke="#FF7A88" marker-end="url(#ah)"/>
+        <path d="M120 168 L168 128" stroke-dasharray="5 4" stroke="#B79CFF"/>
+        <path d="M75 222 V240" stroke="#B79CFF"/>
+        <path d="M75 286 V304" stroke="#B79CFF"/>
+        <path d="M140 332 H168"/>
+        <path d="M222 304 V150" stroke="#FF9900" stroke-width="2"/>
+        <path d="M258 150 V304" stroke="#38D6FF" stroke-width="2"/>
+      </g>
+      <g font-size="13" text-anchor="middle">
+        <rect x="150" y="10" width="180" height="46" rx="8" fill="#18214A" stroke="#2D3A70"/><text x="240" y="30">Producers</text><text x="240" y="47" font-size="11" fill="#D2D6F5">APIs, events, cron</text>
+        <rect x="150" y="90" width="180" height="60" rx="8" fill="#2A1D00" stroke="#FF9900" stroke-width="1.6"/><text x="240" y="114" font-weight="600">SQS standard queue</text><text x="240" y="134" font-size="11" fill="#D2D6F5">visible + in flight</text>
+        <rect x="358" y="90" width="112" height="60" rx="8" fill="#2D1218" stroke="#FF7A88" stroke-width="1.6"/><text x="414" y="114" font-weight="600">DLQ</text><text x="414" y="134" font-size="11" fill="#D2D6F5">after maxReceiveCount</text>
+        <rect x="10" y="168" width="130" height="54" rx="8" fill="#211A3F" stroke="#B79CFF" stroke-width="1.6"/><text x="75" y="192" font-weight="600">KEDA operator</text><text x="75" y="210" font-size="11" fill="#D2D6F5">aws-sqs-queue scaler</text>
+        <rect x="10" y="240" width="130" height="46" rx="8" fill="#18214A" stroke="#2D3A70"/><text x="75" y="260" font-weight="600">HPA</text><text x="75" y="277" font-size="11" fill="#D2D6F5">keda-hpa-order-worker</text>
+        <rect x="10" y="304" width="130" height="56" rx="8" fill="#18214A" stroke="#2D3A70"/><text x="75" y="328" font-weight="600">Deployment</text><text x="75" y="346" font-size="11" fill="#D2D6F5">order-worker replicas</text>
+        <rect x="168" y="304" width="200" height="56" rx="8" fill="#0F2A33" stroke="#38D6FF" stroke-width="1.6"/><text x="268" y="328" font-weight="600">EKS worker pods</text><text x="268" y="346" font-size="11" fill="#D2D6F5">poll, process, delete</text>
+        <rect x="10" y="392" width="460" height="64" rx="8" fill="#10261C" stroke="#5CF2A0" stroke-width="1.6"/><text x="240" y="414" font-weight="600">IAM role through IRSA or EKS Pod Identity</text><text x="240" y="432" font-size="11" fill="#D2D6F5">workers: ReceiveMessage, DeleteMessage, ChangeMessageVisibility</text><text x="240" y="447" font-size="11" fill="#D2D6F5">KEDA: GetQueueAttributes only</text>
+      </g>
+      <g font-size="11" fill="#D2D6F5" text-anchor="start">
+        <text x="82" y="152" fill="#B79CFF">GetQueueAttributes</text>
+        <text x="272" y="236" fill="#38D6FF">Receive,</text><text x="272" y="250" fill="#38D6FF">Delete</text>
+        <text x="130" y="236" fill="#FF9900" text-anchor="end">visible again</text><text x="130" y="250" fill="#FF9900" text-anchor="end">after timeout</text>
+      </g>
+    </svg>
+  </section>
+
+  <section id="g2">
+    <h2><span>2</span>The message lifecycle</h2>
+    <ol>
+      <li>A producer calls <code>SendMessage</code>. The message is stored on several servers and counts as visible.</li>
+      <li>A worker calls <code>ReceiveMessage</code> (use long polling, <code>WaitTimeSeconds=20</code>). SQS returns up to 10 messages and starts the visibility timeout. Each message gets a fresh receipt handle and its receive count goes up by one.</li>
+      <li>While hidden, the message is "in flight". Other workers cannot receive it.</li>
+      <li>On success the worker calls <code>DeleteMessage</code> with the latest receipt handle. The message is gone.</li>
+      <li>On crash, error, or a job that outlives the timeout, nothing deletes it. The timeout expires and the message becomes visible again.</li>
+      <li>If you configured a redrive policy and the receive count reaches <code>maxReceiveCount</code>, SQS moves the message to the dead-letter queue instead of delivering it again.</li>
+    </ol>
+    <p>That loop is why standard queues are at-least-once: step 5 can run after the side effect in step 3 already happened.</p>
+  </section>
+
+  <section id="g3">
+    <h2><span>3</span>Worker Deployment</h2>
+    <p>The workers are an ordinary Deployment. They get AWS access from their service account, not from keys in environment variables. The replica count is owned by the autoscaler, so leave <code>replicas</code> out once KEDA manages it.</p>
+    <div class="codewrap"><div class="cap">order-worker-deployment.yaml</div><pre data-code="deployment"></pre><button type="button" data-copy="deployment">Copy</button></div>
+  </section>
+
+  <section id="g4">
+    <h2><span>4</span>KEDA ScaledObject for SQS</h2>
+    <p>This is round 4 as YAML. KEDA computes <code>ceil((visible + in flight) / queueLength)</code>, clamps it between the min and max replica counts, and hands the number to an HPA it creates for you. <code>queueLength</code> is the backlog per replica you want to tolerate. It is not how fast a pod works, so size it from your measured throughput per pod.</p>
+    <div class="codewrap"><div class="cap">order-worker-scaledobject.yaml</div><pre data-code="scaledobject"></pre><button type="button" data-copy="scaledobject">Copy</button></div>
+    <p><code>cooldownPeriod</code> only governs the last step down to zero. For scaling between 1 and N, the HPA's own stabilization window applies. Set <code>minReplicaCount: 0</code> only if your users can wait for a cold start of a new pod.</p>
+  </section>
+
+  <section id="g5">
+    <h2><span>5</span>Secure access: IRSA or EKS Pod Identity</h2>
+    <p>Use one of the two. Both give a pod short-lived credentials for one IAM role. Create separate roles for the workers and for KEDA so a compromised worker cannot read other queues' attributes and KEDA cannot delete messages.</p>
+    <p><b>IRSA</b> needs the cluster's OIDC provider. The trust policy pins the role to one namespace and service account:</p>
+    <div class="codewrap"><div class="cap">worker-trust-policy.json (IRSA)</div><pre data-code="trust"></pre><button type="button" data-copy="trust">Copy</button></div>
+    <div class="codewrap"><div class="cap">service account annotation</div><pre data-code="sa"></pre><button type="button" data-copy="sa">Copy</button></div>
+    <p><b>EKS Pod Identity</b> removes the OIDC step. Install the Pod Identity Agent add-on, give the role a trust policy for <code>pods.eks.amazonaws.com</code> (actions <code>sts:AssumeRole</code> and <code>sts:TagSession</code>), then associate it:</p>
+    <div class="codewrap"><div class="cap">Pod Identity association</div><pre data-code="podidentity"></pre><button type="button" data-copy="podidentity">Copy</button></div>
+  </section>
+
+  <section id="g6">
+    <h2><span>6</span>Permissions for queue attributes</h2>
+    <p>KEDA's SQS scaler calls <code>GetQueueAttributes</code> to read <code>ApproximateNumberOfMessages</code> (visible) and <code>ApproximateNumberOfMessagesNotVisible</code> (in flight). Without that permission the scaler logs an AccessDenied error and cannot scale, which is the "IAM" switch in round 4.</p>
+    <div class="scroll-x"><table class="gt"><tr><th>Role</th><th>Actions</th><th>Why</th></tr>
+      <tr><td>KEDA operator</td><td><code>sqs:GetQueueAttributes</code></td><td>Read queue depth for scaling</td></tr>
+      <tr><td>Worker</td><td><code>sqs:ReceiveMessage</code>, <code>sqs:DeleteMessage</code>, <code>sqs:ChangeMessageVisibility</code>, <code>sqs:GetQueueAttributes</code></td><td>Consume, acknowledge, extend the lease</td></tr>
+      <tr><td>Producer</td><td><code>sqs:SendMessage</code></td><td>Enqueue work</td></tr>
+    </table></div>
+    <div class="codewrap"><div class="cap">keda-sqs-policy.json</div><pre data-code="kedapolicy"></pre><button type="button" data-copy="kedapolicy">Copy</button></div>
+    <div class="codewrap"><div class="cap">worker-sqs-policy.json</div><pre data-code="workerpolicy"></pre><button type="button" data-copy="workerpolicy">Copy</button></div>
+    <p>If the queue uses a customer-managed KMS key, the worker also needs <code>kms:Decrypt</code> on that key.</p>
+  </section>
+
+  <section id="g7">
+    <h2><span>7</span>Redrive policy and dead-letter queue</h2>
+    <p>Create the DLQ first, give it a longer retention than the source queue (14 days is the maximum), then point the source queue at it. Standard queues need a standard DLQ.</p>
+    <div class="codewrap"><div class="cap">dead-letter queue setup</div><pre data-code="dlq"></pre><button type="button" data-copy="dlq">Copy</button></div>
+    <p>Pick <code>maxReceiveCount</code> above the number of times a healthy message might fail from throttling or a brief outage. Three to five is common. After you fix the bug, move the messages back with a redrive task and alarm on the DLQ depth so nobody forgets them.</p>
+  </section>
+
+  <section id="g8">
+    <h2><span>8</span>Visibility timeout and idempotency</h2>
+    <ul>
+      <li>Set the visibility timeout a little above your slowest normal job (p99 plus margin). Too short makes duplicates, too long delays recovery after a crash.</li>
+      <li>For long or variable jobs, start with a modest timeout and call <code>ChangeMessageVisibility</code> while working to extend it.</li>
+      <li>Handle <code>SIGTERM</code>: stop polling, finish the in-flight message, then exit. Set <code>terminationGracePeriodSeconds</code> above your job time.</li>
+      <li>Assume every message can arrive twice. Key the side effect on a business ID such as the order ID and make the write conditional.</li>
+    </ul>
+    <div class="codewrap"><div class="cap">idempotent handler (Python, boto3)</div><pre data-code="idem"></pre><button type="button" data-copy="idem">Copy</button></div>
+    <p>The key is claimed before the work runs, so a crash between the claim and the work needs a status field or a TTL that lets a later attempt take over. For payments, prefer an idempotency key that the payment provider enforces itself.</p>
+  </section>
+
+  <section id="g9">
+    <h2><span>9</span>Deploy, inspect, troubleshoot</h2>
+    <div class="codewrap"><div class="cap">deploy</div><pre data-code="deploy"></pre><button type="button" data-copy="deploy">Copy</button></div>
+    <div class="codewrap"><div class="cap">inspect</div><pre data-code="inspect"></pre><button type="button" data-copy="inspect">Copy</button></div>
+    <div class="scroll-x"><table class="gt"><tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+      <tr><td>Stays at 0 or 1 replicas while the queue grows</td><td>KEDA lacks <code>sqs:GetQueueAttributes</code>, wrong region or queue URL, or the trust policy does not match the service account</td><td><code>kubectl logs -n keda deploy/keda-operator</code>, <code>kubectl describe scaledobject</code></td></tr>
+      <tr><td>Replicas jump but pods stay Pending</td><td>No node capacity</td><td><code>kubectl describe pod</code>, node group max size, Karpenter or Cluster Autoscaler logs</td></tr>
+      <tr><td>Duplicate side effects</td><td>Timeout shorter than job time, or crash after the work and before the delete</td><td>Compare processing p99 with the timeout, add idempotency</td></tr>
+      <tr><td>Queue never empties but depth is flat</td><td>Poison messages cycling</td><td><code>ApproximateAgeOfOldestMessage</code>, receive counts, add a DLQ</td></tr>
+      <tr><td>Scaling too slow for bursts</td><td>High polling interval, large queueLength, low maxReplicaCount, slow pod start</td><td>Raise <code>minReplicaCount</code>, lower queueLength, pre-pull images</td></tr>
+    </table></div>
+  </section>
+
+  <section id="g10">
+    <h2><span>10</span>Production considerations</h2>
+    <ul>
+      <li><b>Monitoring.</b> Alarm on <code>ApproximateAgeOfOldestMessage</code> (users feel latency here), DLQ depth above zero, pod restarts, and worker error rate. Queue depth alone hides slow consumers.</li>
+      <li><b>Downstream limits.</b> Autoscaling workers can overload a database or a partner API, as in round 1. Cap <code>maxReplicaCount</code> to what the dependency can take and add backoff.</li>
+      <li><b>Nodes.</b> Pods need somewhere to run. Pair KEDA with Karpenter or Cluster Autoscaler and keep spare capacity for bursts, or pods sit Pending as in round 4.</li>
+      <li><b>Disruptions.</b> Use a PodDisruptionBudget and graceful shutdown so node upgrades do not abandon messages mid-job.</li>
+      <li><b>Ordering.</b> Standard queues give no ordering guarantee. If you need it, use FIFO queues with message group IDs, and accept lower parallelism.</li>
+      <li><b>Cost.</b> Long polling and batching (up to 10 messages per call) cut SQS request charges. Scale to zero saves compute but adds cold-start latency.</li>
+      <li><b>Failure drills.</b> Kill pods during a load test, revoke the KEDA permission in a test account, and send a deliberate poison message. Watch what your dashboards and alarms show before real traffic does it for you.</li>
+    </ul>
+  </section>
+</div>
+</div>
+
+<script>
+var QC = (function () {
+  'use strict';
+
+  function rng32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function h01(seed, id, salt) {
+    var h = (seed ^ Math.imul(id, 2654435761) ^ Math.imul(salt, 40503)) >>> 0;
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function lin(x, a, b) { return clamp((x - a) / (b - a), 0, 1); }
+
+  var DEF = {
+    seed: 7, dt: 0.25,
+    initial: 0, baseRate: 0, baseUntil: Infinity,
+    burstRate: 0, burstDur: 0, burstAt: null,
+    poisonRate: 0, transientRate: 0,
+    proc: 2.0, jitter: 0.2, slowRate: 0, slowTime: 7.5, poisonTime: 3.0,
+    batch: 1,
+    podStartup: 6, restartDelay: 5,
+    crashProb: 0, lateShare: 0.5,
+    downstream: 0, nodeCap: 30,
+    vt: 30, idem: false,
+    dlq: { on: false, max: 3 },
+    replicas: 1,
+    keda: { on: false, min: 0, max: 30, poll: 15, cooldown: 60, target: 50, iam: true },
+    podRate: 1.2
+  };
+
+  function createSim(user) {
+    user = user || {};
+    var c = Object.assign({}, DEF, user);
+    c.dlq = Object.assign({}, DEF.dlq, user.dlq || {});
+    c.keda = Object.assign({}, DEF.keda, user.keda || {});
+    var s = {
+      cfg: c, t: 0, dt: c.dt, desired: c.replicas,
+      visible: [], vh: 0, inflight: [], inflightN: 0, pods: [], dlq: [],
+      nextId: 0, podSerial: 0, carry: 0, burstAt: c.burstAt, lastSec: 0,
+      rand: rng32(c.seed * 7919 + 13),
+      stats: {
+        done: 0, effects: 0, dupEffects: 0, dupPrevented: 0, receives: 0, retries: 0,
+        errors: 0, crashes: 0, dlqMoved: 0, dlqHealthy: 0, dlqPoison: 0, expired: 0,
+        arrived: 0, poisonArrived: 0, poisonEarly: 0, dlqPoisonEarly: 0, lateAcks: 0, healthyTotal: 0, healthyDone: 0, staleAcks: 0,
+        latSum: 0, wasted: 0, procSum: 0, procN: 0, podSeconds: 0, peakVisible: 0, thr: 0,
+        burstEndedAt: null, recoveredAt: null
+      },
+      history: [], events: [], evN: 0, flow: [], expAcc: 0, dlqAcc: 0, errAcc: 0,
+      kd: { nextPoll: 0, belowSince: null, lastMetric: 0, error: null, errLogged: false }
+    };
+
+    function evt(type, text) {
+      s.evN++;
+      s.events.push({ n: s.evN, t: s.t, type: type, text: text });
+      if (s.events.length > 300) s.events.splice(0, 100);
+    }
+    function visCount() { return s.visible.length - s.vh; }
+    function addMsg() {
+      var id = ++s.nextId;
+      var poison = h01(c.seed, id, 3) < c.poisonRate;
+      var tr = !poison && h01(c.seed, id, 4) < c.transientRate;
+      var m = { id: id, rc: 0, poison: poison, transient: tr, tFails: tr ? (h01(c.seed, id, 5) < 0.5 ? 2 : 1) : 0, effects: 0, done: false, sent: s.t, inDlq: false, holder: null };
+      s.visible.push(m);
+      s.stats.arrived++;
+      if (poison) { s.stats.poisonArrived++; if (s.t <= 100) s.stats.poisonEarly++; } else s.stats.healthyTotal++;
+      return m;
+    }
+    function msgTime(m) {
+      if (m.poison) return c.poisonTime;
+      if (c.slowRate > 0 && h01(c.seed, m.id, 2) < c.slowRate) return c.slowTime;
+      var j = (h01(c.seed, m.id, 1) - 0.5) * 2 * c.jitter;
+      return c.proc * (1 + j);
+    }
+    function addPod(ready) {
+      var p = {
+        id: ++s.podSerial, state: ready ? 'idle' : 'pending', readyAt: s.t + c.podStartup,
+        batch: null, finishAt: 0, crashAt: null, late: false, term: false, startAt: 0, dur: 1
+      };
+      s.pods.push(p);
+      return p;
+    }
+    function effect(m) {
+      if (m.effects > 0) {
+        if (c.idem) { s.stats.dupPrevented++; return; }
+        s.stats.dupEffects++;
+      }
+      m.effects++; s.stats.effects++;
+    }
+    function failing(r) { return r.m.poison || (r.m.transient && r.rc <= r.m.tFails); }
+
+    function reconcile() {
+      var target = Math.min(Math.max(0, Math.round(s.desired)), c.nodeCap);
+      var n = 0, i, p;
+      for (i = 0; i < s.pods.length; i++) if (!s.pods[i].term) n++;
+      if (n < target) {
+        for (i = 0; i < s.pods.length && n < target; i++) if (s.pods[i].term) { s.pods[i].term = false; n++; }
+        while (n < target) { addPod(false); n++; }
+      } else if (n > target) {
+        var rm = n - target, order = ['pending', 'idle', 'crashed', 'busy'];
+        for (var oi = 0; oi < order.length; oi++) {
+          for (i = s.pods.length - 1; i >= 0 && rm > 0; i--) {
+            p = s.pods[i];
+            if (!p.term && p.state === order[oi]) { p.term = true; rm--; }
+          }
+        }
+      }
+      var keep = [];
+      for (i = 0; i < s.pods.length; i++) {
+        p = s.pods[i];
+        if (p.state === 'gone') continue;
+        if (p.term && p.state !== 'busy') continue;
+        keep.push(p);
+      }
+      s.pods = keep;
+    }
+
+    function setDesired(n, why) {
+      var from = s.desired;
+      s.desired = n;
+      if (from !== n) evt('scale', why + ': replicas ' + from + ' to ' + n);
+    }
+
+    function scaler() {
+      var k = c.keda;
+      if (!k.on || s.t < s.kd.nextPoll) return;
+      s.kd.nextPoll = s.t + k.poll;
+      var cur = s.desired;
+      if (!k.iam) {
+        s.kd.error = 'AccessDenied: sqs:GetQueueAttributes';
+        if (!s.kd.errLogged) { evt('error', 'KEDA cannot read the queue: AccessDenied on sqs:GetQueueAttributes. Replicas stay at ' + cur); s.kd.errLogged = true; }
+        return;
+      }
+      s.kd.error = null; s.kd.errLogged = false;
+      var metric = visCount() + s.inflightN;
+      s.kd.lastMetric = metric;
+      var want = clamp(Math.ceil(metric / Math.max(1, k.target)), k.min, k.max);
+      if (cur <= 0 && metric > 0) {
+        setDesired(Math.max(1, k.min), 'KEDA activates from zero (metric ' + metric + ')');
+        s.kd.belowSince = null; return;
+      }
+      if (want > cur) {
+        setDesired(Math.min(want, cur + Math.max(4, cur)), 'KEDA/HPA scale out (metric ' + metric + ', target ' + k.target + ' per pod)');
+        s.kd.belowSince = null;
+      } else if (want < cur) {
+        if (s.kd.belowSince === null) s.kd.belowSince = s.t;
+        if (s.t - s.kd.belowSince >= k.cooldown) {
+          setDesired(want, 'KEDA scale in after ' + k.cooldown + 's cooldown');
+          s.kd.belowSince = null;
+        }
+      } else s.kd.belowSince = null;
+    }
+
+    function tryReceive(p) {
+      var batch = [];
+      while (batch.length < c.batch && s.vh < s.visible.length) {
+        var m = s.visible[s.vh++];
+        if (m.done) continue;
+        if (c.dlq.on && m.rc >= c.dlq.max) {
+          s.dlq.push(m); m.inDlq = true; s.stats.dlqMoved++;
+          if (m.poison) { s.stats.dlqPoison++; if (m.sent <= 100) s.stats.dlqPoisonEarly++; } else s.stats.dlqHealthy++;
+          s.dlqAcc++; s.flow.push({ k: 'dlq' });
+          continue;
+        }
+        m.rc++; s.stats.receives++;
+        if (m.rc > 1) s.stats.retries++;
+        var r = { m: m, pod: p, expire: s.t + c.vt, valid: true, deleted: false, rc: m.rc, at: s.t };
+        s.inflight.push(r); s.inflightN++; batch.push(r); m.holder = r;
+      }
+      if (s.vh > 2048 && s.vh * 2 > s.visible.length) { s.visible = s.visible.slice(s.vh); s.vh = 0; }
+      if (!batch.length) return;
+      var base = 0, i;
+      for (i = 0; i < batch.length; i++) base += msgTime(batch[i].m);
+      var busy = 1;
+      for (i = 0; i < s.pods.length; i++) if (s.pods[i].state === 'busy') busy++;
+      var stretch = c.downstream > 0 ? Math.max(1, (busy / c.proc) / c.downstream) : 1;
+      var dur = base * stretch;
+      p.batch = batch; p.startAt = s.t; p.dur = dur; p.finishAt = s.t + dur; p.state = 'busy'; p.crashAt = null;
+      if (c.crashProb > 0 && s.rand() < c.crashProb) {
+        p.crashAt = s.t + dur * (0.15 + 0.7 * s.rand());
+        p.late = s.rand() < c.lateShare;
+      }
+      s.flow.push({ k: 'recv', pod: p.id, n: batch.length });
+    }
+
+    function crashPod(p, why) {
+      if (p.late) for (var i = 0; i < p.batch.length; i++) if (!failing(p.batch[i])) effect(p.batch[i].m);
+      s.stats.crashes++;
+      evt('crash', 'pod-' + p.id + ' crashed (' + why + ') holding ' + p.batch.length + ' message' + (p.batch.length > 1 ? 's' : '') + (p.late ? ' after the side effect ran but before the delete' : ' before finishing') + '. They stay in flight for ' + c.vt + 's');
+      s.flow.push({ k: 'crash', pod: p.id });
+      p.batch = null; p.crashAt = null; p.state = 'crashed'; p.readyAt = s.t + c.restartDelay;
+    }
+
+    function complete(p) {
+      var okN = 0;
+      for (var i = 0; i < p.batch.length; i++) {
+        var r = p.batch[i], m = r.m;
+        if (failing(r)) { s.stats.errors++; s.errAcc++; s.stats.wasted += s.t - r.at; continue; }
+        effect(m);
+        s.stats.procSum += s.t - r.at; s.stats.procN++;
+        var late = false;
+        if (r.valid && !r.deleted) { r.deleted = true; r.valid = false; s.inflightN--; m.holder = null; }
+        else if (!m.done && m.holder === null) late = true;
+        else { s.stats.staleAcks++; continue; }
+        m.done = true; s.stats.done++; okN++;
+        if (late) s.stats.lateAcks++;
+        if (!m.poison) s.stats.healthyDone++;
+        s.stats.latSum += s.t - m.sent;
+      }
+      if (okN) s.flow.push({ k: 'done', pod: p.id, n: okN });
+      p.batch = null; p.crashAt = null;
+      p.state = p.term ? 'gone' : 'idle';
+    }
+
+    function arrivals() {
+      var rate = 0;
+      if (s.burstAt !== null && s.t >= s.burstAt && s.t < s.burstAt + c.burstDur) rate = c.burstRate;
+      else if (s.t <= c.baseUntil) rate = c.baseRate;
+      s.carry += rate * s.dt;
+      var n = Math.floor(s.carry); s.carry -= n;
+      for (var i = 0; i < n; i++) addMsg();
+      if (s.burstAt !== null && s.stats.burstEndedAt === null && s.t >= s.burstAt + c.burstDur) s.stats.burstEndedAt = s.t;
+    }
+
+    function expire() {
+      var inf = s.inflight, w = 0, exp = 0;
+      for (var i = 0; i < inf.length; i++) {
+        var r = inf[i];
+        if (r.deleted) continue;
+        if (s.t >= r.expire) {
+          r.valid = false; s.inflightN--;
+          if (r.m.holder === r) r.m.holder = null;
+          if (!r.m.done) { s.visible.push(r.m); exp++; }
+        } else inf[w++] = r;
+      }
+      inf.length = w;
+      if (exp) { s.stats.expired += exp; s.expAcc += exp; s.flow.push({ k: 'expire', n: exp }); }
+    }
+
+    function sample() {
+      var run = 0, idle = 0, busy = 0, pend = 0, cr = 0, i;
+      for (i = 0; i < s.pods.length; i++) {
+        var st = s.pods[i].state;
+        if (st === 'idle') { idle++; run++; } else if (st === 'busy') { busy++; run++; } else if (st === 'pending') pend++; else if (st === 'crashed') cr++;
+      }
+      var vis = visCount();
+      s.history.push({ t: Math.round(s.t), vis: vis, inf: s.inflightN, run: run, alive: s.pods.length, des: s.desired, dlq: s.dlq.length, done: s.stats.done });
+      var h = s.history, n = h.length;
+      var back = h[Math.max(0, n - 6)];
+      s.stats.thr = n > 1 ? (s.stats.done - back.done) / Math.max(1, h[n - 1].t - back.t) : 0;
+      if (s.expAcc) { evt('expire', s.expAcc + ' message' + (s.expAcc > 1 ? 's' : '') + ' became visible again (visibility timeout expired)'); s.expAcc = 0; }
+      if (s.dlqAcc) { evt('dlq', s.dlqAcc + ' message' + (s.dlqAcc > 1 ? 's' : '') + ' moved to the dead-letter queue after ' + c.dlq.max + ' receives'); s.dlqAcc = 0; }
+      if (s.errAcc) { evt('error', s.errAcc + ' processing failure' + (s.errAcc > 1 ? 's' : '') + ' (handler threw, message not deleted)'); s.errAcc = 0; }
+      if (s.stats.burstEndedAt !== null && s.stats.recoveredAt === null && vis < 50) s.stats.recoveredAt = s.t;
+    }
+
+    function step() {
+      s.t += s.dt;
+      arrivals();
+      expire();
+      var v = visCount(); if (v > s.stats.peakVisible) s.stats.peakVisible = v;
+      scaler();
+      reconcile();
+      for (var i = 0; i < s.pods.length; i++) {
+        var p = s.pods[i];
+        if (p.state === 'pending') { if (s.t >= p.readyAt) { p.state = 'idle'; } }
+        else if (p.state === 'crashed') { if (s.t >= p.readyAt) { p.state = 'idle'; evt('pod', 'pod-' + p.id + ' restarted by kubelet and is polling again'); } }
+        else if (p.state === 'idle') { if (!p.term) tryReceive(p); }
+        else if (p.state === 'busy') {
+          if (p.crashAt !== null && s.t >= p.crashAt) crashPod(p, 'OOMKilled or node fault');
+          else if (s.t >= p.finishAt) complete(p);
+        }
+      }
+      s.stats.podSeconds += s.pods.length * s.dt;
+      if (Math.floor(s.t + 1e-9) > s.lastSec) { s.lastSec = Math.floor(s.t + 1e-9); sample(); }
+    }
+
+    function view() {
+      var run = 0, idle = 0, busy = 0, pend = 0, cr = 0, term = 0, i, st;
+      for (i = 0; i < s.pods.length; i++) {
+        var p = s.pods[i]; st = p.state;
+        if (p.term) term++;
+        if (st === 'idle') { idle++; run++; } else if (st === 'busy') { busy++; run++; } else if (st === 'pending') pend++; else if (st === 'crashed') cr++;
+      }
+      var unsched = Math.max(0, Math.round(s.desired) - c.nodeCap);
+      var cap = c.downstream > 0 ? Math.min(100, Math.round(100 * (busy / c.proc) / c.downstream)) : 0;
+      return {
+        t: s.t, vis: visCount(), inf: s.inflightN, run: run, idle: idle, busy: busy, pend: pend, unsched: unsched, crashed: cr,
+        alive: s.pods.length, desired: s.desired, dlq: s.dlq.length,
+        thr: s.stats.thr, avgProc: s.stats.procN ? s.stats.procSum / s.stats.procN : 0,
+        avgLat: s.stats.done ? s.stats.latSum / s.stats.done : 0,
+        cost: s.stats.podSeconds / 3600 * c.podRate, util: run ? Math.round(100 * busy / run) : 0, sat: cap,
+        total: visCount() + s.inflightN
+      };
+    }
+
+    // initial state
+    for (var q = 0; q < c.initial; q++) addMsg();
+    for (var z = 0; z < Math.min(c.replicas, c.nodeCap); z++) addPod(true);
+
+    return {
+      s: s, cfg: c, step: step, view: view, evt: evt,
+      setReplicas: function (n) { var from = s.desired; s.desired = clamp(Math.round(n), 0, c.nodeCap + 10); return { from: from, to: s.desired }; },
+      setVt: function (v) { c.vt = v; },
+      setIdem: function (b) { c.idem = !!b; },
+      setDlq: function (on, max) { c.dlq.on = !!on; if (max) c.dlq.max = max; },
+      setKeda: function (o) { Object.assign(c.keda, o); if (o.iam === true) { s.kd.error = null; s.kd.errLogged = false; } },
+      setCrashProb: function (p) { c.crashProb = p; },
+      triggerBurst: function () { if (s.burstAt === null) { s.burstAt = s.t; evt('burst', 'Traffic burst: ' + c.baseRate + ' to ' + c.burstRate + ' messages per second for ' + c.burstDur + 's'); return true; } return false; },
+      crashOne: function () {
+        for (var i = 0; i < s.pods.length; i++) {
+          var p = s.pods[i];
+          if (p.state === 'busy' && p.crashAt === null) { p.crashAt = s.t; p.late = s.rand() < c.lateShare; return p.id; }
+        }
+        return null;
+      },
+      remaining: function () { return visCount() + s.inflightN; }
+    };
+  }
+
+  /* ---------- round definitions and scoring ---------- */
+
+  function roundSims(i, hard) {
+    var h = !!hard;
+    if (i === 0) return [{ name: 'order-worker on EKS', cfg: { seed: 11, initial: 1000, proc: 2.0, jitter: 0.2, downstream: 5, nodeCap: h ? 16 : 20, podStartup: h ? 10 : 6, vt: 30, replicas: 2 } }];
+    if (i === 1) return [{ name: 'order-worker on EKS', cfg: { seed: 23, initial: 300, proc: 2.0, jitter: 0.2, slowRate: 0.12, slowTime: 7.5, crashProb: h ? 0.11 : 0.07, lateShare: 0.5, nodeCap: 12, vt: 30, replicas: 8 } }];
+    var base3 = { seed: 31, initial: 60, baseRate: 3.0, baseUntil: 150, poisonRate: h ? 0.11 : 0.08, transientRate: 0.05, proc: 2.0, jitter: 0.2, poisonTime: 5.0, vt: 6, replicas: 10, nodeCap: 16 };
+    if (i === 2) return [
+      { name: 'Mode A: no dead-letter queue', cfg: Object.assign({}, base3, { dlq: { on: false, max: 3 } }) },
+      { name: 'Mode B: DLQ with maxReceiveCount', cfg: Object.assign({}, base3, { dlq: { on: true, max: 10 } }) }
+    ];
+    var base4 = { seed: 41, baseRate: 20, burstRate: h ? 650 : 500, burstDur: 30, proc: 0.05, jitter: 0, batch: 10, nodeCap: 30, podStartup: 8, vt: 30 };
+    return [
+      { name: 'Manual replicas', cfg: Object.assign({}, base4, { replicas: 2 }) },
+      { name: 'KEDA ScaledObject', cfg: Object.assign({}, base4, { replicas: 1, keda: { on: true, min: 1, max: 30, poll: 15, cooldown: 60, target: 50, iam: true } }) }
+    ];
+  }
+
+  var ROUND_META = [
+    { limit: 900, title: 'Drain the queue' },
+    { limit: 300, title: 'Pod crashes and visibility timeout' },
+    { limit: 210, title: 'Poison messages and dead-letter queues' },
+    { limit: 150, title: 'Traffic burst and KEDA autoscaling' }
+  ];
+
+  function roundOver(i, sims) {
+    var a = sims[0], t = a.s.t;
+    if (t >= ROUND_META[i].limit) return true;
+    if (i === 0 || i === 1) return a.remaining() === 0;
+    return false;
+  }
+
+  function stars(score, i) { var top = i === 3 ? 780 : 850; return score >= top ? 3 : score >= 560 ? 2 : score >= 280 ? 1 : 0; }
+
+  function score(i, sims) {
+    var a = sims[0], st = a.s.stats, v = a.view(), c = a.cfg, parts = {}, total = 0;
+    if (i === 0) {
+      var done = a.remaining() === 0;
+      var T = a.s.t, ideal = 1000 / 5;
+      parts.speed = done ? lin(T, 600, ideal + 15) : 0;
+      var ratio = st.podSeconds / (1000 * c.proc);
+      parts.cost = clamp((2.6 - ratio) / (2.6 - 1.15), 0, 1);
+      total = 1000 * (0.55 * parts.speed + 0.45 * parts.cost);
+      return { score: Math.round(total), stars: stars(total, i), parts: parts, dims: { scale: parts.speed, cost: parts.cost } };
+    }
+    if (i === 1) {
+      var fin = a.remaining() === 0;
+      parts.reliability = 1 - Math.min(1, st.dupEffects / 8);
+      parts.speed = fin ? lin(a.s.t, 230, 120) : 0;
+      parts.retries = 1 - lin(st.retries / 300, 0.12, 0.5);
+      total = 1000 * (0.45 * parts.reliability + 0.30 * parts.speed + 0.25 * parts.retries);
+      return { score: Math.round(total), stars: stars(total, i), parts: parts, dims: { reliability: parts.reliability, retry: parts.retries } };
+    }
+    var b = sims[1], sb = b.s.stats;
+    if (i === 2) {
+      parts.healthy = sb.healthyTotal ? sb.healthyDone / sb.healthyTotal : 0;
+      parts.isolation = sb.poisonEarly ? Math.min(1, sb.dlqPoisonEarly / sb.poisonEarly) : 0;
+      parts.falsePos = 1 - Math.min(1, sb.dlqHealthy / 6);
+      parts.backlog = 1 - lin(b.view().total, 10, 150);
+      total = 1000 * (0.35 * parts.healthy + 0.30 * parts.isolation + 0.20 * parts.falsePos + 0.15 * parts.backlog);
+      return { score: Math.round(total), stars: stars(total, i), parts: parts, dims: { reliability: parts.healthy * parts.falsePos, retry: parts.isolation } };
+    }
+    var rec = sb.recoveredAt !== null && sb.burstEndedAt !== null ? sb.recoveredAt - sb.burstEndedAt : 999;
+    parts.backlog = 1 - lin(sb.peakVisible, 5500, 13000);
+    parts.recovery = 1 - lin(rec, 12, 60);
+    parts.cost = 1 - lin(sb.podSeconds, 2000, 3600);
+    total = 1000 * (0.40 * parts.backlog + 0.30 * parts.recovery + 0.30 * parts.cost);
+    return { score: Math.round(total), stars: stars(total, i), parts: parts, dims: { scale: (parts.backlog + parts.recovery) / 2, cost: parts.cost } };
+  }
+
+  return { createSim: createSim, roundSims: roundSims, roundOver: roundOver, score: score, ROUND_META: ROUND_META, stars: stars };
+})();
+if (typeof module !== 'undefined') module.exports = QC;
+
+</script>
+<script>
+var GUIDE_CODE = {
+deployment: [
+'apiVersion: apps/v1',
+'kind: Deployment',
+'metadata:',
+'  name: order-worker',
+'  namespace: workers',
+'spec:',
+'  # no replicas field: KEDA/HPA owns the count',
+'  selector:',
+'    matchLabels: { app: order-worker }',
+'  template:',
+'    metadata:',
+'      labels: { app: order-worker }',
+'    spec:',
+'      serviceAccountName: order-worker',
+'      terminationGracePeriodSeconds: 60   # longer than your slowest job',
+'      containers:',
+'        - name: worker',
+'          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/order-worker:<TAG>',
+'          env:',
+'            - name: QUEUE_URL',
+'              value: https://sqs.<REGION>.amazonaws.com/<ACCOUNT_ID>/<QUEUE_NAME>',
+'            - name: AWS_REGION',
+'              value: <REGION>',
+'            - name: VISIBILITY_TIMEOUT',
+'              value: "30"',
+'          resources:',
+'            requests: { cpu: 250m, memory: 256Mi }',
+'            limits:   { memory: 512Mi }'
+].join('\n'),
+
+scaledobject: [
+'apiVersion: keda.sh/v1alpha1',
+'kind: TriggerAuthentication',
+'metadata:',
+'  name: aws-sqs-auth',
+'  namespace: workers',
+'spec:',
+'  podIdentity:',
+'    provider: aws',
+'---',
+'apiVersion: keda.sh/v1alpha1',
+'kind: ScaledObject',
+'metadata:',
+'  name: order-worker',
+'  namespace: workers',
+'spec:',
+'  scaleTargetRef:',
+'    name: order-worker',
+'  minReplicaCount: 1        # 0 enables scale to zero',
+'  maxReplicaCount: 30       # also bounded by node capacity',
+'  pollingInterval: 15       # seconds between queue checks',
+'  cooldownPeriod: 60        # seconds before scaling to zero',
+'  triggers:',
+'    - type: aws-sqs-queue',
+'      authenticationRef:',
+'        name: aws-sqs-auth',
+'      metadata:',
+'        queueURL: https://sqs.<REGION>.amazonaws.com/<ACCOUNT_ID>/<QUEUE_NAME>',
+'        queueLength: "50"   # target backlog per replica',
+'        awsRegion: <REGION>',
+'        identityOwner: operator   # KEDA operator role reads the queue'
+].join('\n'),
+
+trust: [
+'{',
+'  "Version": "2012-10-17",',
+'  "Statement": [{',
+'    "Effect": "Allow",',
+'    "Principal": {',
+'      "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/oidc.eks.<REGION>.amazonaws.com/id/<OIDC_ID>"',
+'    },',
+'    "Action": "sts:AssumeRoleWithWebIdentity",',
+'    "Condition": {',
+'      "StringEquals": {',
+'        "oidc.eks.<REGION>.amazonaws.com/id/<OIDC_ID>:sub": "system:serviceaccount:workers:order-worker",',
+'        "oidc.eks.<REGION>.amazonaws.com/id/<OIDC_ID>:aud": "sts.amazonaws.com"',
+'      }',
+'    }',
+'  }]',
+'}'
+].join('\n'),
+
+sa: [
+'apiVersion: v1',
+'kind: ServiceAccount',
+'metadata:',
+'  name: order-worker',
+'  namespace: workers',
+'  annotations:',
+'    eks.amazonaws.com/role-arn: arn:aws:iam::<ACCOUNT_ID>:role/<WORKER_ROLE_NAME>'
+].join('\n'),
+
+podidentity: [
+'# one-time: enable the agent',
+'aws eks create-addon --cluster-name <CLUSTER_NAME> --addon-name eks-pod-identity-agent',
+'',
+'# bind the role to the service account (no annotation needed)',
+'aws eks create-pod-identity-association \\',
+'  --cluster-name <CLUSTER_NAME> \\',
+'  --namespace workers \\',
+'  --service-account order-worker \\',
+'  --role-arn arn:aws:iam::<ACCOUNT_ID>:role/<WORKER_ROLE_NAME>'
+].join('\n'),
+
+kedapolicy: [
+'{',
+'  "Version": "2012-10-17",',
+'  "Statement": [{',
+'    "Effect": "Allow",',
+'    "Action": "sqs:GetQueueAttributes",',
+'    "Resource": "arn:aws:sqs:<REGION>:<ACCOUNT_ID>:<QUEUE_NAME>"',
+'  }]',
+'}'
+].join('\n'),
+
+workerpolicy: [
+'{',
+'  "Version": "2012-10-17",',
+'  "Statement": [{',
+'    "Effect": "Allow",',
+'    "Action": [',
+'      "sqs:ReceiveMessage",',
+'      "sqs:DeleteMessage",',
+'      "sqs:ChangeMessageVisibility",',
+'      "sqs:GetQueueAttributes"',
+'    ],',
+'    "Resource": "arn:aws:sqs:<REGION>:<ACCOUNT_ID>:<QUEUE_NAME>"',
+'  }]',
+'}'
+].join('\n'),
+
+dlq: [
+'# 1. create the dead-letter queue with long retention',
+'aws sqs create-queue --queue-name <DLQ_NAME> \\',
+'  --attributes MessageRetentionPeriod=1209600',
+'',
+'# 2. attach the redrive policy to the source queue',
+'aws sqs set-queue-attributes --queue-url <QUEUE_URL> --attributes \'{',
+'  "RedrivePolicy": "{\\"deadLetterTargetArn\\":\\"arn:aws:sqs:<REGION>:<ACCOUNT_ID>:<DLQ_NAME>\\",\\"maxReceiveCount\\":\\"3\\"}",',
+'  "VisibilityTimeout": "30"',
+'}\'',
+'',
+'# 3. after fixing the bug, move messages back to the source queue',
+'aws sqs start-message-move-task \\',
+'  --source-arn arn:aws:sqs:<REGION>:<ACCOUNT_ID>:<DLQ_NAME> \\',
+'  --destination-arn arn:aws:sqs:<REGION>:<ACCOUNT_ID>:<QUEUE_NAME>'
+].join('\n'),
+
+idem: [
+'import boto3, json',
+'from botocore.exceptions import ClientError',
+'',
+'sqs = boto3.client("sqs")',
+'table = boto3.resource("dynamodb").Table("<IDEMPOTENCY_TABLE>")',
+'',
+'def handle(msg):',
+'    order = json.loads(msg["Body"])',
+'    key = "order#" + order["order_id"]          # business key, not MessageId',
+'    try:',
+'        table.put_item(',
+'            Item={"pk": key, "ttl": int(time.time()) + 7 * 86400},',
+'            ConditionExpression="attribute_not_exists(pk)",',
+'        )',
+'    except ClientError as e:',
+'        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":',
+'            return                                # already done: just delete',
+'        raise',
+'    charge_customer(order)                        # the side effect',
+'',
+'for m in sqs.receive_message(QueueUrl=QUEUE_URL, MaxNumberOfMessages=10,',
+'                             WaitTimeSeconds=20).get("Messages", []):',
+'    handle(m)',
+'    sqs.delete_message(QueueUrl=QUEUE_URL, ReceiptHandle=m["ReceiptHandle"])'
+].join('\n'),
+
+deploy: [
+'# install KEDA with an IRSA role for the operator',
+'helm repo add kedacore https://kedacore.github.io/charts && helm repo update',
+'helm install keda kedacore/keda --namespace keda --create-namespace \\',
+'  --set podIdentity.aws.irsa.enabled=true \\',
+'  --set podIdentity.aws.irsa.roleArn=arn:aws:iam::<ACCOUNT_ID>:role/<KEDA_ROLE_NAME>',
+'',
+'kubectl create namespace workers',
+'kubectl apply -f order-worker-deployment.yaml',
+'kubectl apply -f order-worker-scaledobject.yaml'
+].join('\n'),
+
+inspect: [
+'# what is KEDA doing?',
+'kubectl get scaledobject -n workers',
+'kubectl describe scaledobject order-worker -n workers',
+'kubectl get hpa -n workers                      # keda-hpa-order-worker',
+'kubectl logs -n keda deploy/keda-operator --tail=100',
+'',
+'# what are the pods doing?',
+'kubectl get pods -n workers -w',
+'kubectl logs -n workers deploy/order-worker --tail=100',
+'kubectl describe pod -n workers <POD_NAME>',
+'',
+'# what does SQS say?',
+'aws sqs get-queue-attributes --queue-url <QUEUE_URL> --attribute-names \\',
+'  ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible \\',
+'  ApproximateNumberOfMessagesDelayed RedrivePolicy VisibilityTimeout',
+'aws sqs get-queue-attributes --queue-url <DLQ_URL> \\',
+'  --attribute-names ApproximateNumberOfMessages'
+].join('\n')
+};
+
+</script>
+<script>
+(function () {
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+var DT = 0.25;
+var FB = "'IBM Plex Sans', system-ui, sans-serif", FM = "'IBM Plex Mono', ui-monospace, monospace";
+var COL = { orange: '#FF9900', cyan: '#38D6FF', green: '#5CF2A0', red: '#FF7A88', amber: '#FFD25A', violet: '#B79CFF', text: '#F0F0FF', text2: '#D2D6F5', line: '#2D3A70', panel2: '#18214A' };
+
+var RM = [
+  { title: 'Drain the queue',
+    scenario: 'An SQS queue has piled up 1,000 messages and only 2 EKS pods are consuming them. Each pod finishes one message every 2 seconds, but the database behind the workers can absorb only 5 messages per second in total.',
+    goal: 'Drain the queue fast without paying for pods you cannot use. Change the replica count while it runs.',
+    concepts: ['ApproximateNumberOfMessagesVisible', 'Deployment replicas', 'Consumer throughput', 'Queue-based scaling'] },
+  { title: 'Pod crashes and visibility timeout',
+    scenario: 'Pods now crash mid-job, and about one job in eight is slow (7.5 s instead of 2 s). SQS hides a received message for the visibility timeout. If the pod dies the message returns after the timeout. If the job outlives the timeout, a second pod grabs the same message.',
+    goal: 'Finish all 300 messages with no duplicate side effects, few retries, and no long waits for crashed work to come back.',
+    concepts: ['Visibility timeout', 'At-least-once delivery', 'Idempotency keys', 'Pod restarts'] },
+  { title: 'Poison messages and dead-letter queues',
+    scenario: 'About 8% of incoming messages are poison: the handler fails on them every time, after burning 5 s of pod time. Another 5% fail once or twice from throttling and then succeed. Both clusters get identical traffic. Mode A has no dead-letter queue. Mode B moves a message to the DLQ after maxReceiveCount receives.',
+    goal: 'Choose a maxReceiveCount that parks poison messages quickly without dead-lettering healthy ones.',
+    concepts: ['Dead-letter queue', 'Redrive policy', 'maxReceiveCount', 'Failure isolation'] },
+  { title: 'Traffic burst and KEDA autoscaling',
+    scenario: 'Traffic jumps from 20 to 500 messages per second for 30 seconds. A pod processes 20 messages per second and takes 8 s to start. Left: replicas you set by hand. Right: a KEDA ScaledObject you configure. The same burst hits both.',
+    goal: 'Tune KEDA so the backlog clears fast and pods scale back in afterwards, then compare with hand scaling.',
+    concepts: ['KEDA ScaledObject', 'aws-sqs-queue scaler', 'HPA', 'Scale to zero', 'IAM GetQueueAttributes'] }
+];
+
+var ACH = [
+  { id: 'drain', n: 'First drain', d: 'Empty the queue in round 1' },
+  { id: 'sized', n: 'Right-sized', d: 'Three stars in round 1' },
+  { id: 'chaos', n: 'Chaos monkey', d: 'Crash a pod on purpose in round 2' },
+  { id: 'lease', n: 'Tuned lease', d: 'Finish round 2 with a 10 to 15 s timeout' },
+  { id: 'idem', n: 'Run it twice', d: 'Finish round 2 with zero duplicate side effects' },
+  { id: 'poison', n: 'Poison control', d: 'Park every early poison message, no healthy ones' },
+  { id: 'iam', n: 'IAM detective', d: 'Break KEDA permissions, then fix them' },
+  { id: 'burst', n: 'Burst survivor', d: 'Score 560 or more in round 4' },
+  { id: 'thrift', n: 'Thrifty scaler', d: 'Cost score above 80% in round 4' },
+  { id: 'perfect', n: 'Full marks', d: 'Three stars on all four rounds' }
+];
+
+var G = { round: 0, hard: false, speed: 4, running: false, started: false, acc: 0, sims: [], cl: [], decisions: [], logs: [], logSeen: [], lastLog: 0,
+  burstDone: false, peakSat: 0, usedCrash: false, iamBroke: false, iamFixed: false, over: false, hist: [],
+  save: { xp: 0, ach: {}, res: [null, null, null, null], maxUnlocked: 0 } };
+
+/* ---------- storage ---------- */
+function loadSave() { try { var s = JSON.parse(localStorage.getItem('queue-commander-v1')); if (s && s.res) G.save = Object.assign(G.save, s); } catch (e) {} }
+function persist() { try { localStorage.setItem('queue-commander-v1', JSON.stringify(G.save)); } catch (e) {} }
+
+/* ---------- helpers ---------- */
+function n0(x) { return Math.round(x).toLocaleString('en-US'); }
+function n1(x) { return (Math.round(x * 10) / 10).toFixed(1); }
+function money(x) { return '$' + x.toFixed(3); }
+function mmss(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+function pct(x) { return Math.round(clamp(x, 0, 1) * 100) + '%'; }
+function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function isDual() { return G.sims.length > 1; }
+
+/* ---------- feedback and log ---------- */
+function say(html, kind) {
+  var f = $('fb'); f.className = 'fb ' + (kind || 'info');
+  f.querySelector('i').textContent = kind === 'good' ? '+' : kind === 'bad' ? '!' : kind === 'warn' ? '~' : 'i';
+  $('fbt').innerHTML = html;
+  var plain = html.replace(/<[^>]+>/g, '');
+  G.logs.push({ t: G.sims[0] ? G.sims[0].s.t : 0, type: 'you', text: 'You: ' + plain, n: G.logs.length });
+}
+function pullEvents() {
+  var out = [];
+  G.sims.forEach(function (sim, i) {
+    var ev = sim.s.events, seen = G.logSeen[i] || 0;
+    for (var k = 0; k < ev.length; k++) {
+      var e = ev[k];
+      if (e.n <= seen) continue;
+      if (i > 0 && e.type === 'burst') continue;
+      G.logs.push({ t: e.t, type: e.type, text: (isDual() ? (i === 0 ? 'A: ' : 'B: ') : '') + e.text, n: G.logs.length });
+      seen = e.n;
+    }
+    G.logSeen[i] = seen;
+  });
+  if (G.logs.length > 400) G.logs.splice(0, 150);
+}
+function renderLog() {
+  var box = $('log'), rows = G.logs.slice(-40).reverse(), h = '';
+  for (var i = 0; i < rows.length; i++) h += '<div class="' + rows[i].type + '"><span class="tm">' + mmss(rows[i].t) + '</span><span>' + rows[i].text + '</span></div>';
+  box.innerHTML = h || '<div><span class="tm"></span><span class="tm">Events appear here once the simulation runs.</span></div>';
+}
+
+/* ---------- round setup ---------- */
+function loadRound(i) {
+  G.round = i; G.running = false; G.started = false; G.acc = 0; G.over = false; G.burstDone = false; G.peakSat = 0;
+  G.decisions = []; G.logs = []; G.logSeen = []; G.usedCrash = false; G.iamBroke = false; G.iamFixed = false;
+  var defs = QC.roundSims(i, G.hard);
+  G.sims = defs.map(function (d) { return QC.createSim(d.cfg); });
+  G.names = defs.map(function (d) { return d.name; });
+  $('debrief').hidden = true; $('final').hidden = true;
+  buildMission(); buildControls(); buildClusters(); buildSide();
+  $('cmpCard').hidden = !isDual();
+  renderRounds(); renderHud();
+  var intro = ['Press Start, then add or remove pods while it runs. The database behind the pods is the limit to find.',
+    'Press Start. Try the visibility timeout and the idempotency switch while pods crash.',
+    'Press Start and compare Mode A with Mode B. Mode B starts with a high maxReceiveCount, which is not ideal.',
+    'Press Start. The burst begins on its own at 25 s, or press Trigger burst earlier. The default KEDA settings are slow on purpose.'][i];
+  $('fb').className = 'fb info'; $('fb').querySelector('i').textContent = 'i'; $('fbt').textContent = intro;
+  draw(performance.now(), true); drawChart(); renderLog(); updateMetrics();
+}
+
+function buildMission() {
+  var r = RM[G.round];
+  $('mission').innerHTML = '<h2>Round ' + (G.round + 1) + ': ' + r.title + '</h2><p class="sc">' + r.scenario + '</p><div class="goal"><b>Your goal.</b> ' + r.goal + '</div><div class="tags">' + r.concepts.map(function (c) { return '<span class="tag">' + c + '</span>'; }).join('') + '</div>';
+}
+
+function seg(act, opts, cur, extra) {
+  return '<span class="seg" role="group">' + opts.map(function (o) { return '<button type="button" data-act="' + act + '" data-v="' + o[0] + '"' + (extra ? ' data-x="' + extra + '"' : '') + (String(o[0]) === String(cur) ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + o[1] + '</button>'; }).join('') + '</span>';
+}
+function stepper(act, id, val, label, extra) {
+  return '<span class="step" role="group" aria-label="' + label + '"><button type="button" data-act="' + act + '" data-d="-1"' + (extra ? ' data-x="' + extra + '"' : '') + ' aria-label="Remove one">&minus;</button><span id="' + id + '">' + val + '</span><button type="button" data-act="' + act + '" data-d="1"' + (extra ? ' data-x="' + extra + '"' : '') + ' aria-label="Add one">+</button></span>';
+}
+function toggle(act, id, on, label) {
+  return '<label class="tog"><input type="checkbox" id="' + id + '" data-act="' + act + '"' + (on ? ' checked' : '') + '><span class="sw" aria-hidden="true"></span><span>' + label + '</span></label>';
+}
+
+function buildControls() {
+  var i = G.round, a = G.sims[0], b = G.sims[1], c = a.cfg, h = '';
+  h += '<div class="crow"><button class="btn primary" id="btnGo" type="button" data-act="go">Start</button><button class="btn" type="button" data-act="reset">Reset round</button>' +
+    '<span class="cgroup"><label>Speed</label>' + seg('speed', [[1, '1x'], [4, '4x'], [12, '12x']], G.speed) + '</span>' +
+    '<span class="cgroup"><label>Difficulty</label>' + seg('diff', [['n', 'Normal'], ['h', 'Hard']], G.hard ? 'h' : 'n') + '</span>' +
+    '<span class="clab mono" id="clock">t = 0 s</span></div>';
+  if (i === 0) {
+    h += '<div class="crow"><span class="cgroup"><label>Replicas</label>' + stepper('rep', 'rep0', a.s.desired, 'Replicas', 0) + '</span></div><div class="hint" id="hint"></div>';
+  } else if (i === 1) {
+    h += '<div class="crow"><span class="cgroup"><label>Replicas</label>' + stepper('rep', 'rep0', a.s.desired, 'Replicas', 0) + '</span>' +
+      '<span class="cgroup"><label>Visibility timeout</label>' + seg('vt', [[2, '2s'], [5, '5s'], [10, '10s'], [30, '30s'], [60, '60s']], c.vt) + '</span></div>' +
+      '<div class="crow">' + toggle('idem', 'idem', c.idem, 'Idempotency key check') +
+      '<span class="cgroup"><label for="crash">Crash rate</label><input type="range" id="crash" min="0" max="15" step="1" value="' + Math.round(c.crashProb * 100) + '" data-act="crash"><span class="mono" id="crashv">' + Math.round(c.crashProb * 100) + '% per job</span></span>' +
+      '<button class="btn warn small" type="button" data-act="crashnow">Crash a pod now</button></div><div class="hint" id="hint"></div>';
+  } else if (i === 2) {
+    h += '<div class="crow"><span class="cgroup"><label>Replicas (both clusters)</label>' + stepper('rep', 'rep0', a.s.desired, 'Replicas', 'all') + '</span>' +
+      '<span class="cgroup"><label>maxReceiveCount (Mode B)</label>' + seg('maxrc', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [10, '10']], b.cfg.dlq.max) + '</span></div><div class="hint" id="hint"></div>';
+  } else {
+    var k = b.cfg.keda;
+    h += '<div class="crow"><span class="cgroup"><label>Manual replicas (left)</label>' + stepper('rep', 'rep0', a.s.desired, 'Manual replicas', 0) + '</span><button class="btn small" type="button" data-act="burst" id="btnBurst">Trigger burst</button></div>' +
+      '<div class="crow"><span class="clab">KEDA ScaledObject (right)</span>' +
+      '<span class="cgroup"><label>min</label>' + stepper('kmin', 'kmin', k.min, 'Minimum replicas') + '</span>' +
+      '<span class="cgroup"><label>max</label>' + stepper('kmax', 'kmax', k.max, 'Maximum replicas') + '</span></div>' +
+      '<div class="crow"><span class="cgroup"><label>pollingInterval</label>' + seg('kpoll', [[5, '5s'], [15, '15s'], [30, '30s'], [60, '60s']], k.poll) + '</span>' +
+      '<span class="cgroup"><label>cooldownPeriod</label>' + seg('kcool', [[15, '15s'], [30, '30s'], [60, '60s'], [120, '120s']], k.cooldown) + '</span></div>' +
+      '<div class="crow"><span class="cgroup"><label>queueLength per replica</label>' + seg('ktarget', [[10, '10'], [25, '25'], [50, '50'], [100, '100'], [200, '200']], k.target) + '</span>' +
+      toggle('kiam', 'kiam', k.iam, 'KEDA role may call sqs:GetQueueAttributes') + '</div><div class="hint" id="hint"></div>';
+  }
+  $('controls').innerHTML = h;
+  syncGoBtn();
+}
+function syncGoBtn() {
+  var b = $('btnGo'); if (!b) return;
+  b.textContent = G.over ? 'Round finished' : G.running ? 'Pause' : G.started ? 'Resume' : 'Start';
+  b.disabled = G.over;
+}
+
+function buildClusters() {
+  var wrap = $('clusters'); wrap.innerHTML = ''; wrap.className = 'clusters' + (isDual() ? ' dual' : '');
+  G.cl = G.sims.map(function (sim, i) {
+    var box = el('div', 'cluster');
+    box.innerHTML = '<div class="chead"><h3>' + (isDual() ? G.names[i] : 'EKS cluster: ' + G.names[i]) + '</h3><span class="status ok" id="st' + i + '">running</span></div><div class="cvwrap"><canvas id="cv' + i + '" aria-label="Animated view of the queue and worker pods" role="img"></canvas></div><div class="cfg" id="cf' + i + '"></div><div class="metrics" id="mt' + i + '"></div>';
+    wrap.appendChild(box);
+    return { sim: sim, canvas: box.querySelector('canvas'), wrap: box.querySelector('.cvwrap'), parts: [], particles: [], podIdx: {}, view: sim.view() };
+  });
+  resizeAll();
+}
+
+function buildSide() {
+  var i = G.round, s = $('side');
+  if (i === 2) {
+    $('sideTitle').textContent = 'Dead-letter queue contents (Mode B)';
+    s.innerHTML = '<p class="clab" style="margin-bottom:8px">Red items are poison messages. Amber items are healthy messages that were dead-lettered by mistake.</p><div class="dlqlist" id="dlqlist"></div>';
+  } else if (i === 3) {
+    $('sideTitle').textContent = 'Reading the two sides';
+    s.innerHTML = '<p class="clab">KEDA divides visible plus in-flight messages by <b>queueLength</b> to pick a replica count. That number is a target backlog per pod, not a speed. Each pod still finishes only 20 messages per second, new pods need 8 s to start, and scale-out is stepwise, so a short <b>pollingInterval</b> and a sensible <b>min</b> matter as much as the target. A long <b>cooldownPeriod</b> keeps pods (and cost) after the burst. The manual side shows what a fixed fleet costs.</p>';
+  } else if (i === 1) {
+    $('sideTitle').textContent = 'What to watch';
+    s.innerHTML = '<p class="clab">Amber lines in the log are messages that reappeared after the timeout. If the timeout is shorter than a slow job (7.5 s), SQS hands a live message to another pod. A crash after the work but before the delete also repeats the side effect unless idempotency is on.</p>';
+  } else {
+    $('sideTitle').textContent = 'What to watch';
+    s.innerHTML = '<p class="clab">Visible messages are waiting for a pod. In-flight messages are held by a pod and hidden for the visibility timeout. Watch pod utilization and the database saturation figure: once saturation hits 100%, extra pods only add cost.</p>';
+  }
+}
+
+/* ---------- metrics ---------- */
+function tile(l, v, u, cls) { return '<div class="mt"><div class="l">' + l + '</div><div class="v ' + (cls || '') + '">' + v + '</div><div class="u">' + (u || '&nbsp;') + '</div></div>'; }
+function updateMetrics() {
+  G.sims.forEach(function (sim, i) {
+    var v = sim.view(), s = sim.s, st = s.stats, c = sim.cfg, h = '';
+    h += tile('Visible messages', n0(v.vis), 'ApproximateNumberOfMessagesVisible', 'c-or');
+    h += tile('In flight', n0(v.inf), 'ApproximateNumberOfMessagesNotVisible', 'c-am');
+    h += tile('Pods running', v.run + ' of ' + n0(v.desired), v.pend + ' pending' + (v.unsched ? ', ' + v.unsched + ' unschedulable' : '') + ', ' + v.crashed + ' crashed', 'c-cy');
+    h += tile('Throughput', n1(v.thr) + '/s', 'messages processed per second', 'c-gr');
+    h += tile('Avg processing', n1(v.avgProc) + ' s', 'per message, success only');
+    h += tile('Errors / retries', n0(st.errors) + ' / ' + n0(st.retries), n0(st.crashes) + ' pod crashes', st.errors ? 'c-rd' : '');
+    h += tile('DLQ messages', n0(v.dlq), c.dlq.on ? 'redrive after ' + c.dlq.max + ' receives' : 'no redrive policy', v.dlq ? 'c-rd' : '');
+    h += tile('Est. cost', money(v.cost), n0(st.podSeconds) + ' pod-seconds', '');
+    if (G.round === 0) h += tile('Database load', v.sat + '%', 'limit ' + c.downstream + ' msg/s', v.sat >= 100 ? 'c-rd' : '') + tile('Pod utilization', v.util + '%', 'busy of running');
+    if (G.round === 1) h += tile('Duplicate effects', n0(st.dupEffects), n0(st.dupPrevented) + ' blocked by idempotency', st.dupEffects ? 'c-rd' : 'c-gr') + tile('Back in queue', n0(st.expired), 'timeouts that expired', 'c-am');
+    if (G.round === 2) h += tile('Healthy done', n0(st.healthyDone) + ' / ' + n0(st.healthyTotal), 'poison arrived: ' + n0(st.poisonArrived)) + tile('Pod time wasted', n0(st.wasted) + ' s', 'on failed attempts', st.wasted > 60 ? 'c-rd' : '');
+    if (G.round === 3) h += tile('Peak backlog', n0(st.peakVisible), 'visible messages', '') + tile('Avg latency', n1(v.avgLat) + ' s', 'send to delete');
+    $('mt' + i).innerHTML = h;
+    var cf = '';
+    if (c.keda.on) {
+      var k = c.keda;
+      cf = '<span>replicas <b>' + v.desired + '</b></span><span>min <b>' + k.min + '</b></span><span>max <b>' + k.max + '</b></span><span>poll <b>' + k.poll + 's</b></span><span>cooldown <b>' + k.cooldown + 's</b></span><span>queueLength <b>' + k.target + '</b></span>' + (s.kd.error ? '<span style="color:var(--red)">' + s.kd.error + '</span>' : '<span>metric <b>' + n0(s.kd.lastMetric) + '</b></span>');
+    } else cf = '<span>desired replicas <b>' + v.desired + '</b></span><span>visibility timeout <b>' + c.vt + 's</b></span>' + (c.idem ? '<span>idempotency <b>on</b></span>' : '');
+    $('cf' + i).innerHTML = cf;
+    var stt = $('st' + i), txt = 'running', cls = 'status ok';
+    if (!G.started) { txt = 'ready'; cls = 'status'; } else if (!G.running && !G.over) { txt = 'paused'; cls = 'status warn'; } else if (G.over) { txt = 'finished'; cls = 'status'; }
+    if (s.kd.error) { txt = 'AccessDenied'; cls = 'status bad'; } else if (v.vis > 500 && G.running) { txt = 'backlog'; cls = 'status warn'; }
+    stt.textContent = txt; stt.className = cls;
+  });
+  var a = G.sims[0], v0 = a.view();
+  $('clock').textContent = 't = ' + n0(a.s.t) + ' s';
+  if (v0.sat > G.peakSat) G.peakSat = v0.sat;
+  var hint = $('hint'); if (!hint) return;
+  if (G.round === 0) {
+    var cap = Math.min(v0.desired / a.cfg.proc, a.cfg.downstream), rem = a.remaining();
+    hint.innerHTML = 'Pods can pull <b>' + n1(v0.desired / a.cfg.proc) + ' msg/s</b>, the database allows <b>' + a.cfg.downstream + ' msg/s</b>, so the fleet moves <b>' + n1(cap) + ' msg/s</b>. ' + (rem ? 'About <b>' + mmss(rem / Math.max(0.1, cap)) + '</b> to drain what is left.' : 'Queue empty.') + ' New pods spend ' + a.cfg.podStartup + ' s Pending but are billed.';
+  } else if (G.round === 1) {
+    var st1 = a.s.stats;
+    hint.innerHTML = 'Slow jobs take <b>7.5 s</b>. Timeout <b>' + a.cfg.vt + ' s</b> ' + (a.cfg.vt < 7.5 ? 'is shorter, so live messages get delivered twice.' : 'covers them.') + ' A crashed pod\'s messages wait <b>' + a.cfg.vt + ' s</b> to return. Duplicate side effects so far: <b>' + st1.dupEffects + '</b>.';
+  } else if (G.round === 2) {
+    var A = G.sims[0], B = G.sims[1];
+    hint.innerHTML = 'Mode A: <b>' + A.view().total + '</b> messages waiting or in flight, <b>' + n0(A.s.stats.errors) + '</b> failed attempts. Mode B: <b>' + B.view().total + '</b> backlog, <b>' + B.view().dlq + '</b> in the DLQ. A poison message in B costs about <b>' + (B.cfg.dlq.max * 5) + ' s</b> of pod time before it is parked.';
+  } else {
+    var Bk = G.sims[1], kk = Bk.cfg.keda;
+    var left = G.burstDone ? '' : ' Burst starts on its own at 25 s.';
+    hint.innerHTML = 'Capacity is <b>20 msg/s per pod</b>, so 500 msg/s needs <b>25 pods</b>. With queueLength <b>' + kk.target + '</b> and a backlog of <b>' + n0(Bk.view().total) + '</b>, KEDA asks for <b>' + clamp(Math.ceil(Bk.view().total / kk.target), kk.min, kk.max) + '</b> pods, but may add only max(4, current) per ' + kk.poll + ' s check.' + left;
+  }
+}
+
+/* ---------- control actions ---------- */
+function decide(text) { G.decisions.push({ t: G.sims[0].s.t, text: text }); }
+
+function onAct(act, d) {
+  var a = G.sims[0], b = G.sims[1], c = a.cfg, i = G.round;
+  if (act === 'go') { if (G.over) return; G.running = !G.running; G.started = true; syncGoBtn(); if (G.running) say(G.sims[0].s.t === 0 ? 'Simulation started. Change settings at any time and watch the cause and effect.' : 'Resumed.', 'info'); else say('Paused. Settings still apply when you resume.', 'warn'); return; }
+  if (act === 'reset') { loadRound(G.round); return; }
+  if (act === 'speed') { G.speed = +d.v; setOn(d); return; }
+  if (act === 'diff') { G.hard = d.v === 'h'; loadRound(G.round); say(G.hard ? 'Hard mode: ' + ['slower pod start and fewer node slots.', 'more frequent crashes.', 'more poison messages.', 'a 650 msg/s burst.'][i] : 'Normal difficulty.', 'warn'); return; }
+  if (act === 'rep') {
+    var dir = +d.d, both = d.x === 'all', targets = both ? G.sims : [a];
+    var from = targets[0].s.desired, r = targets[0].setReplicas(from + dir);
+    targets.slice(1).forEach(function (s) { s.setReplicas(from + dir); });
+    $('rep0').textContent = r.to; decide('replicas ' + r.from + ' to ' + r.to);
+    if (r.from === r.to) return;
+    var cap = c.nodeCap;
+    if (r.to > cap) say('Replicas ' + r.from + ' to ' + r.to + '. The node group has room for ' + cap + ' pods, so ' + (r.to - cap) + ' stay <b>Pending (unschedulable)</b> until you add nodes.', 'warn');
+    else if (i === 0) {
+      var cap0 = r.to / c.proc, lim = c.downstream;
+      say('Replicas ' + r.from + ' to ' + r.to + '. Pods can pull ' + n1(cap0) + ' msg/s but the database allows ' + lim + ' msg/s. ' + (r.to > lim * c.proc ? '<b>Past ' + (lim * c.proc) + ' pods only the bill grows</b>: requests queue up in the database.' : (dir > 0 ? 'Throughput rises once the new pods finish their ' + c.podStartup + ' s start.' : 'Throughput drops, but so does cost.')), r.to > lim * c.proc ? 'bad' : 'good');
+    } else if (i === 1) say('Replicas ' + r.from + ' to ' + r.to + '. ' + (dir > 0 ? 'More pods drain faster and each crash costs a smaller share of capacity.' : 'Fewer pods means each crash hurts more and the round takes longer.'), 'info');
+    else if (i === 2) say('Replicas ' + r.from + ' to ' + r.to + ' on both clusters. Spare capacity absorbs poison retries, but it is not a fix: Mode A still retries poison forever.', 'info');
+    else say('Manual fleet: ' + r.from + ' to ' + r.to + ' pods. Hand scaling is cheap when you guess low and expensive when you guess high; it also cannot react by itself.', 'info');
+    return;
+  }
+  if (act === 'vt') { var v = +d.v; a.setVt(v); setOn(d); decide('visibility timeout ' + v + ' s'); say('Visibility timeout ' + v + ' s. ' + (v < 7.5 ? '<b>Shorter than a slow job (7.5 s).</b> SQS will hand a message to a second pod while the first is still working: expect duplicates and a retry storm.' : v >= 30 ? 'Safe from duplicates, but a crashed pod\'s messages stay hidden for ' + v + ' s before anyone retries them.' : 'Longer than the slowest normal job and short enough that crashed work returns quickly.'), v < 7.5 ? 'bad' : v >= 30 ? 'warn' : 'good'); return; }
+  if (act === 'idem') { var on = d.checked; a.setIdem(on); decide('idempotency ' + (on ? 'on' : 'off')); say(on ? 'Idempotency on. Before the side effect runs, the handler checks a stored key. A repeat delivery is recognised and skipped, so duplicates are <b>blocked</b> instead of charged twice.' : 'Idempotency off. Every delivery repeats the side effect, so any redelivery is a duplicate charge.', on ? 'good' : 'warn'); return; }
+  if (act === 'crash') { var p = +d.value / 100; a.setCrashProb(p); $('crashv').textContent = d.value + '% per job'; decide('crash rate ' + d.value + '%'); say('Crash rate ' + d.value + '% of jobs. Crashed pods restart after ' + c.restartDelay + ' s and their messages come back after the visibility timeout.', 'info'); return; }
+  if (act === 'crashnow') {
+    var id = a.crashOne(); G.usedCrash = true;
+    if (id === null) say('No pod is mid-job right now. Start the simulation first.', 'warn');
+    else { decide('crashed pod-' + id); say('pod-' + id + ' was killed mid-job. Its message stays in flight for ' + c.vt + ' s, then returns to the queue. ' + (a.s.pods.length ? 'If it ran the side effect before dying and idempotency is off, that message will repeat it.' : ''), 'bad'); }
+    return;
+  }
+  if (act === 'maxrc') { var m = +d.v; b.setDlq(true, m); setOn(d); decide('maxReceiveCount ' + m); say('maxReceiveCount ' + m + ' on Mode B. A poison message now burns about ' + (m * 5) + ' s of pod time before it is parked. ' + (m <= 2 ? '<b>Risky:</b> healthy messages that fail once or twice from throttling reach the limit too and are dead-lettered.' : m >= 5 ? 'Slow to isolate poison, so capacity is wasted for longer.' : 'Enough retries for transient errors, few enough to isolate poison quickly.'), m <= 2 ? 'bad' : m >= 5 ? 'warn' : 'good'); return; }
+  if (act === 'burst') { if (G.burstDone) { say('The burst is already running or finished.', 'warn'); return; } triggerBurst(false); return; }
+  if (act === 'kmin' || act === 'kmax') {
+    var k = b.cfg.keda, from2 = act === 'kmin' ? k.min : k.max, to2 = clamp(from2 + (+d.d), act === 'kmin' ? 0 : 1, 30);
+    if (act === 'kmin') b.setKeda({ min: Math.min(to2, k.max) }); else b.setKeda({ max: Math.max(to2, k.min) });
+    $(act).textContent = act === 'kmin' ? b.cfg.keda.min : b.cfg.keda.max; decide(act === 'kmin' ? 'minReplicaCount ' + b.cfg.keda.min : 'maxReplicaCount ' + b.cfg.keda.max);
+    say(act === 'kmin' ? 'minReplicaCount ' + b.cfg.keda.min + '. ' + (b.cfg.keda.min === 0 ? '<b>Scale to zero:</b> no pods and no cost when idle, but the first message waits for a pod to start.' : 'A higher floor means pods are already warm when the burst lands, at a steady cost.') : 'maxReplicaCount ' + b.cfg.keda.max + '. ' + (b.cfg.keda.max < 25 ? '<b>Below 25 pods</b> the fleet cannot match 500 msg/s, so the backlog will keep growing during the burst.' : 'Enough ceiling for the burst; the node group has room for 30.'), act === 'kmax' && b.cfg.keda.max < 25 ? 'bad' : 'info');
+    return;
+  }
+  if (act === 'kpoll') { var pv = +d.v; b.setKeda({ poll: pv }); setOn(d); decide('pollingInterval ' + pv + ' s'); say('pollingInterval ' + pv + ' s. KEDA reads the queue every ' + pv + ' s and may add up to max(4, current) pods per read. ' + (pv <= 5 ? 'Fast reaction, more API calls.' : pv >= 30 ? '<b>Slow:</b> the burst can be over before the fleet is big enough.' : 'A moderate delay before each scale-out step.'), pv >= 30 ? 'bad' : 'info'); return; }
+  if (act === 'kcool') { var cv = +d.v; b.setKeda({ cooldown: cv }); setOn(d); decide('cooldownPeriod ' + cv + ' s'); say('cooldownPeriod ' + cv + ' s. Scale-in waits until the metric has stayed low for ' + cv + ' s. ' + (cv >= 120 ? 'Pods linger after the burst and keep billing.' : cv <= 15 ? 'Cheap, but a second burst right after could find you under-provisioned.' : 'A balance between cost and flapping.'), 'info'); return; }
+  if (act === 'ktarget') { var tv = +d.v; b.setKeda({ target: tv }); setOn(d); decide('queueLength ' + tv); say('queueLength ' + tv + ': KEDA aims for about ' + tv + ' queued messages per pod. ' + (tv >= 100 ? 'Tolerant of backlog, so it scales out late.' : tv <= 10 ? 'Aggressive: it asks for many pods quickly, capped by max and by how fast pods can be added.' : 'Reasonable, but it does not change how fast a pod works (20 msg/s).'), tv >= 100 ? 'warn' : 'info'); return; }
+  if (act === 'kiam') {
+    var ok = d.checked; b.setKeda({ iam: ok }); decide('KEDA IAM ' + (ok ? 'allowed' : 'denied'));
+    if (!ok) { G.iamBroke = true; say('KEDA\'s role can no longer call <code>sqs:GetQueueAttributes</code>. At its next check it logs <b>AccessDenied</b> and cannot read the queue, so replicas freeze.', 'bad'); }
+    else { if (G.iamBroke) G.iamFixed = true; say('Permission restored. KEDA reads the queue again at its next polling interval and resumes scaling.', 'good'); }
+    return;
+  }
+}
+function setOn(d) { var bs = d.parent.querySelectorAll('button'); for (var q = 0; q < bs.length; q++) { var on = bs[q] === d.btn; bs[q].classList.toggle('on', on); bs[q].setAttribute('aria-pressed', on ? 'true' : 'false'); } }
+
+function triggerBurst(auto) {
+  if (G.burstDone) return;
+  G.burstDone = true; G.sims.forEach(function (s) { s.triggerBurst(); });
+  say(auto ? 'The burst started on its own: 20 to ' + G.sims[0].cfg.burstRate + ' messages per second for 30 s.' : 'Burst triggered: 20 to ' + G.sims[0].cfg.burstRate + ' messages per second for 30 s. Watch how each side reacts.', 'bad');
+  var bb = $('btnBurst'); if (bb) bb.disabled = true;
+}
+
+/* ---------- simulation loop ---------- */
+var last = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  var dtr = Math.min(0.1, (now - last) / 1000); last = now;
+  if (G.running && !G.over) {
+    G.acc += dtr * G.speed;
+    var n = Math.min(480, Math.floor(G.acc / DT)); G.acc -= n * DT; if (G.acc > 2) G.acc = 0;
+    for (var k = 0; k < n; k++) {
+      G.sims.forEach(function (s) { s.step(); });
+      if (G.round === 3 && !G.burstDone && G.sims[0].s.t >= 25) triggerBurst(true);
+      if (QC.roundOver(G.round, G.sims)) { finishRound(); break; }
+    }
+  }
+  draw(now, false);
+  if (now - G.lastUi > 150) { G.lastUi = now; pullEvents(); renderLog(); updateMetrics(); drawChart(); if (G.round === 2) renderDlq(); }
+}
+G.lastUi = 0;
+
+/* ---------- drawing ---------- */
+var DPR = Math.min(2, window.devicePixelRatio || 1);
+function resizeAll() {
+  G.cl.forEach(function (cl) {
+    var w = Math.max(240, cl.wrap.clientWidth || 340), small = w < 520;
+    var ts = small ? 30 : 36, gap = small ? 5 : 6, qw = Math.round(clamp(w * 0.27, 84, 128)), lane = Math.round(clamp(w * 0.12, 28, 60));
+    var px = 10 + qw + lane, pw = w - px - 10, cols = Math.max(2, Math.floor((pw + gap) / (ts + gap))), slots = cl.sim.cfg.nodeCap, rows = Math.ceil(slots / cols);
+    var h = Math.max(220, rows * (ts + gap) + 62);
+    cl.w = w; cl.h = h;
+    cl.geo = { qx: 10, qy: 34, qw: qw, qh: h - 34 - 68, dy: h - 58, dh: 48, px: px, py: 42, ts: ts, gap: gap, cols: cols };
+    cl.canvas.style.height = h + 'px'; cl.canvas.width = Math.round(w * DPR); cl.canvas.height = Math.round(h * DPR);
+    cl.ctx = cl.canvas.getContext('2d'); if (cl.ctx) cl.ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  });
+  var ch = $('chart'); var cw = Math.max(240, ch.parentElement.clientWidth - 28), chh = cw < 520 ? 210 : 250;
+  ch.style.height = chh + 'px'; ch.width = Math.round(cw * DPR); ch.height = Math.round(chh * DPR); G.chw = cw; G.chh = chh;
+  var cx = ch.getContext('2d'); if (cx) cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+function rr(c, x, y, w, h, r) { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
+function podXY(cl, idx) { var g = cl.geo, col = idx % g.cols, row = Math.floor(idx / g.cols); return { x: g.px + col * (g.ts + g.gap), y: g.py + row * (g.ts + g.gap) }; }
+
+function consumeFlow(cl, now) {
+  var s = cl.sim.s, f = s.flow, g = cl.geo, nr = 0, nd = 0;
+  s.flow = [];
+  if (!g || cl.particles.length > 140) return;
+  for (var i = 0; i < f.length; i++) {
+    var e = f[i], idx;
+    if (e.k === 'recv' && nr < 6) { idx = cl.podIdx[e.pod]; if (idx === undefined) continue; var p = podXY(cl, idx); cl.particles.push({ x0: g.qx + g.qw, y0: g.qy + g.qh / 2, x1: p.x + g.ts / 2, y1: p.y + g.ts / 2, t0: now, d: 420, c: COL.orange, r: 3.5, kind: 'fly' }); nr++; }
+    else if (e.k === 'done' && nd < 6) { idx = cl.podIdx[e.pod]; if (idx === undefined) continue; var q = podXY(cl, idx); cl.particles.push({ x0: q.x + g.ts / 2, y0: q.y + 4, x1: q.x + g.ts / 2, y1: q.y - 14, t0: now, d: 600, c: COL.green, r: 3.5, kind: 'fade' }); nd++; }
+    else if (e.k === 'crash') { idx = cl.podIdx[e.pod]; if (idx === undefined) continue; var z = podXY(cl, idx); cl.particles.push({ x0: z.x + g.ts / 2, y0: z.y + g.ts / 2, t0: now, d: 700, c: COL.red, r: g.ts * 0.8, kind: 'ring' }); }
+    else if (e.k === 'dlq') { cl.particles.push({ x0: g.qx + g.qw / 2, y0: g.qy + g.qh - 6, x1: g.qx + g.qw / 2, y1: g.dy + 10, t0: now, d: 500, c: COL.red, r: 3.5, kind: 'fly' }); }
+    else if (e.k === 'expire') { cl.particles.push({ x0: g.qx + g.qw / 2, y0: g.qy + g.qh / 2, t0: now, d: 600, c: COL.amber, r: g.qw * 0.55, kind: 'ring' }); }
+  }
+}
+
+function drawCluster(cl, now) {
+  var c = cl.ctx; if (!c) return;
+  var g = cl.geo, s = cl.sim.s, cfg = cl.sim.cfg, v = cl.view = cl.sim.view(), w = cl.w, h = cl.h, i, j;
+  cl.podIdx = {}; for (i = 0; i < s.pods.length; i++) cl.podIdx[s.pods[i].id] = i;
+  consumeFlow(cl, now);
+  c.clearRect(0, 0, w, h);
+  c.textBaseline = 'alphabetic';
+  // faint background stars
+  for (i = 0; i < 26; i++) { var sx = (i * 97.3 % 1) * 0 + ((i * 53.7) % w), sy = (i * 31.9 + 7) % h; c.globalAlpha = 0.25 + 0.25 * Math.sin(now / 700 + i); c.fillStyle = '#FFFFFF'; c.fillRect(sx, sy, 1.5, 1.5); }
+  c.globalAlpha = 1;
+  c.font = '600 12px ' + FB; c.fillStyle = COL.text2; var narrow = w < 520; c.fillText(narrow ? 'SQS queue' : 'SQS queue (message nebula)', g.qx, g.qy - 10);
+  c.fillText(narrow ? 'EKS pods ' + v.alive + '/' + cfg.nodeCap : 'EKS pods  ' + v.alive + ' of ' + cfg.nodeCap + ' orbit slots', g.px, g.qy - 10);
+  if (v.unsched) { c.fillStyle = COL.amber; c.textAlign = 'right'; c.fillText('+' + v.unsched + ' unschedulable', w - 10, g.qy - 10); c.textAlign = 'left'; }
+  // nebula box
+  var ncx = g.qx + g.qw / 2, ncy = g.qy + (g.qh - 44) / 2;
+  var ng = c.createRadialGradient(ncx, ncy, 4, ncx, ncy, g.qw * 0.9); ng.addColorStop(0, 'rgba(255,153,0,.30)'); ng.addColorStop(1, 'rgba(255,153,0,.03)');
+  rr(c, g.qx, g.qy, g.qw, g.qh, 16); c.fillStyle = ng; c.fill(); c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,170,60,.9)'; c.stroke();
+  var sp = 9, cols = Math.max(3, Math.floor((g.qw - 20) / sp)), rows = Math.max(2, Math.floor((g.qh - 66) / sp)), capd = cols * rows, total = v.vis + v.inf;
+  var k = Math.max(1, Math.ceil(total / capd)), nv = Math.ceil(v.vis / k), ni = Math.ceil(v.inf / k);
+  for (j = 0; j < Math.min(capd, nv + ni); j++) {
+    var dx = g.qx + 12 + (j % cols) * sp + Math.sin(j * 12.9898) * 1.4, dy = g.qy + 12 + Math.floor(j / cols) * sp + Math.cos(j * 78.233) * 1.4;
+    var tw = 0.75 + 0.25 * Math.sin(now / 420 + j * 1.7);
+    if (j < nv) { c.globalAlpha = 0.22 * tw; c.beginPath(); c.arc(dx, dy, 5, 0, 6.2832); c.fillStyle = COL.orange; c.fill(); c.globalAlpha = 1; c.beginPath(); c.arc(dx, dy, 2.6 + tw * 0.5, 0, 6.2832); c.fillStyle = '#FFC266'; c.fill(); }
+    else { c.beginPath(); c.arc(dx, dy, 3.2, 0, 6.2832); c.lineWidth = 1.5; c.strokeStyle = COL.amber; c.stroke(); }
+  }
+  if (k > 1) { c.font = '11px ' + FM; c.fillStyle = COL.text2; c.textAlign = 'right'; c.fillText('1 star = ' + k, g.qx + g.qw - 8, g.qy + g.qh - 50); c.textAlign = 'left'; }
+  c.font = '500 16px ' + FM; c.fillStyle = COL.text; c.fillText(n0(v.vis), g.qx + 10, g.qy + g.qh - 32); var vw = c.measureText(n0(v.vis)).width;
+  c.font = '11px ' + FB; c.fillStyle = COL.text2; c.fillText('visible', g.qx + 18 + vw, g.qy + g.qh - 32);
+  c.font = '500 12px ' + FM; c.fillStyle = COL.amber; c.fillText(n0(v.inf), g.qx + 10, g.qy + g.qh - 12); var iw = c.measureText(n0(v.inf)).width;
+  c.font = '11px ' + FB; c.fillStyle = COL.text2; c.fillText('in flight', g.qx + 18 + iw, g.qy + g.qh - 12);
+  // DLQ black hole
+  var hx = g.qx + 26, hy = g.dy + g.dh / 2, on = cfg.dlq.on;
+  rr(c, g.qx, g.dy, g.qw, g.dh, 14); c.fillStyle = 'rgba(8,4,24,.85)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = on ? COL.red : COL.line; c.setLineDash(on ? [] : [4, 4]); c.stroke(); c.setLineDash([]);
+  if (on) { c.save(); c.translate(hx, hy); c.rotate(now / 900); var rg = c.createLinearGradient(-20, 0, 20, 0); rg.addColorStop(0, 'rgba(255,122,136,0)'); rg.addColorStop(.5, 'rgba(255,122,136,.95)'); rg.addColorStop(1, 'rgba(183,156,255,.9)'); c.scale(1, 0.38); c.beginPath(); c.arc(0, 0, 19, 0, 6.2832); c.lineWidth = 3; c.strokeStyle = rg; c.stroke(); c.restore(); }
+  c.beginPath(); c.arc(hx, hy, 9, 0, 6.2832); c.fillStyle = '#000'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = on ? COL.red : COL.line; c.stroke();
+  c.font = '600 12px ' + FB; c.fillStyle = on ? COL.red : COL.text2; c.fillText('DLQ', g.qx + 44, g.dy + 20);
+  c.font = '500 16px ' + FM; c.fillStyle = COL.text; c.textAlign = 'right'; c.fillText(n0(v.dlq), g.qx + g.qw - 10, g.dy + 21); c.textAlign = 'left';
+  if (!on) { c.font = '11px ' + FB; c.fillStyle = COL.text2; c.fillText('off', g.qx + 44, g.dy + 38); } else for (j = 0; j < Math.min(v.dlq, 8); j++) { c.fillStyle = COL.red; c.fillRect(g.qx + 44 + j * 6, g.dy + 30, 4, 7); }
+  // lane
+  c.strokeStyle = 'rgba(120,140,255,.55)'; c.lineWidth = 1; c.setLineDash([2, 5]); c.beginPath(); c.moveTo(g.qx + g.qw + 4, g.qy + g.qh / 2); c.lineTo(g.px - 6, g.qy + g.qh / 2); c.stroke(); c.setLineDash([]);
+  // pods as planets
+  var slots = cfg.nodeCap;
+  for (i = 0; i < slots; i++) {
+    var xy = podXY(cl, i), p = s.pods[i], ts = g.ts, cx = xy.x + ts / 2, cy = xy.y + ts / 2, R = ts / 2 - 2;
+    if (!p) { c.beginPath(); c.arc(cx, cy, 1.8, 0, 6.2832); c.fillStyle = 'rgba(160,180,255,.55)'; c.fill(); continue; }
+    if (p.state === 'pending') { var al = 0.25 + 0.3 * (0.5 + 0.5 * Math.sin(now / 260 + i)); c.beginPath(); c.arc(cx, cy, R, 0, 6.2832); c.lineWidth = 1.8; c.strokeStyle = 'rgba(56,214,255,' + (0.5 + al) + ')'; c.setLineDash([4, 3]); c.stroke(); c.setLineDash([]); }
+    else if (p.state === 'crashed') { var rg2 = c.createRadialGradient(cx, cy, 2, cx, cy, R); rg2.addColorStop(0, '#FFFFFF'); rg2.addColorStop(.35, '#FF7A88'); rg2.addColorStop(1, 'rgba(255,60,90,.15)'); c.beginPath(); c.arc(cx, cy, R, 0, 6.2832); c.fillStyle = rg2; c.fill(); c.lineWidth = 1.5; c.strokeStyle = COL.red; c.stroke(); c.beginPath(); c.moveTo(cx - 6, cy - 6); c.lineTo(cx + 6, cy + 6); c.moveTo(cx + 6, cy - 6); c.lineTo(cx - 6, cy + 6); c.strokeStyle = '#0A0A2C'; c.lineWidth = 2; c.stroke(); }
+    else {
+      var busy = p.state === 'busy';
+      if (busy) { c.globalAlpha = 0.25; c.beginPath(); c.arc(cx, cy, R + 4, 0, 6.2832); c.fillStyle = COL.cyan; c.fill(); c.globalAlpha = 1; }
+      var pg = c.createRadialGradient(cx - R * 0.35, cy - R * 0.35, 1, cx, cy, R); pg.addColorStop(0, busy ? '#9BEFFF' : '#5C7BFF'); pg.addColorStop(1, busy ? '#1F7FB8' : '#1B2A7A');
+      c.beginPath(); c.arc(cx, cy, R, 0, 6.2832); c.fillStyle = pg; c.fill(); c.lineWidth = 1.5; c.strokeStyle = COL.cyan; c.stroke();
+      if (busy) { var fr = clamp((s.t - p.startAt) / Math.max(0.25, p.dur), 0, 1); c.beginPath(); c.arc(cx, cy, R + 3, -1.5708, -1.5708 + 6.2832 * fr); c.lineWidth = 3; c.strokeStyle = COL.green; c.stroke(); }
+      c.font = '600 11px ' + FM; c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.fillText(p.id, cx, cy + 4); c.textAlign = 'left';
+    }
+    if (p.term) { c.beginPath(); c.arc(xy.x + ts - 3, xy.y + 4, 3, 0, 6.2832); c.fillStyle = COL.amber; c.fill(); }
+  }
+  // particles (comets)
+  var out = [];
+  for (i = 0; i < cl.particles.length; i++) {
+    var pt = cl.particles[i], u = (now - pt.t0) / pt.d; if (u >= 1) continue; out.push(pt);
+    if (pt.kind === 'ring') { c.beginPath(); c.arc(pt.x0, pt.y0, pt.r * u, 0, 6.2832); c.strokeStyle = pt.c; c.globalAlpha = 1 - u; c.lineWidth = 2.5; c.stroke(); c.globalAlpha = 1; }
+    else { var e2 = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2, x = pt.x0 + (pt.x1 - pt.x0) * e2, y = pt.y0 + (pt.y1 - pt.y0) * e2, ux = Math.max(0, e2 - 0.12), tx = pt.x0 + (pt.x1 - pt.x0) * ux, ty = pt.y0 + (pt.y1 - pt.y0) * ux;
+      c.globalAlpha = pt.kind === 'fade' ? 1 - u : 1; c.beginPath(); c.moveTo(tx, ty); c.lineTo(x, y); c.lineWidth = 3; c.lineCap = 'round'; c.strokeStyle = pt.c; c.globalAlpha *= 0.55; c.stroke(); c.globalAlpha = pt.kind === 'fade' ? 1 - u : 1; c.beginPath(); c.arc(x, y, pt.r, 0, 6.2832); c.fillStyle = '#FFFFFF'; c.fill(); c.beginPath(); c.arc(x, y, pt.r - 1, 0, 6.2832); c.fillStyle = pt.c; c.globalAlpha *= 0.9; c.fill(); c.globalAlpha = 1; }
+  }
+  cl.particles = out;
+}
+function draw(now, force) { for (var i = 0; i < G.cl.length; i++) drawCluster(G.cl[i], now); }
+
+/* ---------- chart ---------- */
+function niceMax(v) { if (v <= 10) return 10; var p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+function drawChart() {
+  var cv = $('chart'), c = cv.getContext('2d'); if (!c || !G.chw) return;
+  var w = G.chw, h = G.chh, L = 46, R = 36, T = 10, B = 26, pw = w - L - R, ph = h - T - B, s, i, hh;
+  c.clearRect(0, 0, w, h);
+  var maxT = 60, maxQ = 10, cap = G.sims[0].cfg.nodeCap;
+  G.sims.forEach(function (sim) { var hs = sim.s.history; if (hs.length) maxT = Math.max(maxT, hs[hs.length - 1].t); for (i = 0; i < hs.length; i++) maxQ = Math.max(maxQ, hs[i].vis + hs[i].inf); });
+  maxT = Math.ceil(maxT / 30) * 30; maxQ = niceMax(maxQ * 1.05);
+  c.font = '11px ' + FM; c.lineWidth = 1;
+  for (i = 0; i <= 4; i++) {
+    var y = T + ph - ph * i / 4; c.strokeStyle = COL.line; c.beginPath(); c.moveTo(L, y); c.lineTo(L + pw, y); c.stroke();
+    c.fillStyle = COL.orange; c.textAlign = 'right'; c.fillText(n0(maxQ * i / 4), L - 6, y + 4);
+    c.fillStyle = COL.cyan; c.textAlign = 'left'; c.fillText(Math.round(cap * i / 4), L + pw + 6, y + 4);
+  }
+  c.fillStyle = COL.text2; c.textAlign = 'center';
+  for (i = 0; i <= 4; i++) c.fillText(Math.round(maxT * i / 4) + 's', L + pw * i / 4, h - 8);
+  c.textAlign = 'left';
+  var a0 = G.sims[0].s;
+  if (a0.burstAt !== null) { var bx = L + pw * a0.burstAt / maxT, bw = pw * a0.cfg.burstDur / maxT; c.fillStyle = 'rgba(183,156,255,.16)'; c.fillRect(bx, T, Math.min(bw, L + pw - bx), ph); c.fillStyle = COL.violet; c.fillText('burst', bx + 4, T + 12); }
+  var dc = [COL.orange, COL.violet], pc = [COL.cyan, COL.green];
+  G.sims.forEach(function (sim, si) {
+    var hs = sim.s.history; if (!hs.length) return;
+    c.beginPath(); c.lineWidth = 2.4; c.strokeStyle = dc[si];
+    for (i = 0; i < hs.length; i++) { var x = L + pw * hs[i].t / maxT, yq = T + ph - ph * (hs[i].vis + hs[i].inf) / maxQ; if (i) c.lineTo(x, yq); else c.moveTo(x, yq); }
+    c.stroke();
+    c.beginPath(); c.lineWidth = 1.8; c.strokeStyle = pc[si]; c.setLineDash([5, 4]);
+    for (i = 0; i < hs.length; i++) { var x2 = L + pw * hs[i].t / maxT, yp = T + ph - ph * hs[i].run / cap; if (i) { c.lineTo(x2, T + ph - ph * hs[i - 1].run / cap); c.lineTo(x2, yp); } else c.moveTo(x2, yp); }
+    c.stroke(); c.setLineDash([]);
+  });
+  var lg = '';
+  G.sims.forEach(function (sim, si) { var nm = isDual() ? G.names[si] : 'this cluster'; lg += '<span><i style="border-color:' + dc[si] + '"></i>Queue depth (visible + in flight), ' + nm + '</span><span><i class="d" style="border-color:' + pc[si] + '"></i>Running pods, ' + nm + '</span>'; });
+  if ($('legend').getAttribute('data-k') !== lg) { $('legend').innerHTML = lg; $('legend').setAttribute('data-k', lg); }
+}
+
+function renderDlq() {
+  var b = G.sims[1], box = $('dlqlist'); if (!box) return;
+  var arr = b.s.dlq, key = arr.length + ':' + b.cfg.dlq.max; if (box.getAttribute('data-k') === key) return; box.setAttribute('data-k', key);
+  if (!arr.length) { box.innerHTML = '<span class="clab">Empty so far. Messages land here after ' + b.cfg.dlq.max + ' receives.</span>'; return; }
+  box.innerHTML = arr.slice(-60).map(function (m) { return '<span class="dm' + (m.poison ? '' : ' good') + '">#' + m.id + ' <small>' + (m.poison ? 'poison' : 'healthy') + ', ' + m.rc + ' receives</small></span>'; }).join('');
+}
+
+/* ---------- comparison table ---------- */
+function renderCmp() {
+  if (!isDual()) return;
+  var A = G.sims[0], B = G.sims[1], rows = [], i = G.round;
+  function r(label, a, b, better) { var aw = better === 'low' ? parseFloat(a) < parseFloat(b) : better === 'high' ? parseFloat(a) > parseFloat(b) : false, bw = better === 'low' ? parseFloat(b) < parseFloat(a) : better === 'high' ? parseFloat(b) > parseFloat(a) : false; rows.push('<tr><td>' + label + '</td><td class="' + (aw ? 'win' : '') + '">' + a + '</td><td class="' + (bw ? 'win' : '') + '">' + b + '</td></tr>'); }
+  var sa = A.s.stats, sb = B.s.stats, va = A.view(), vb = B.view();
+  $('cmpTitle').textContent = i === 2 ? 'Mode A vs Mode B' : 'Manual replicas vs KEDA';
+  var head = '<tr><th></th><th>' + (i === 2 ? 'A: no DLQ' : 'Manual') + '</th><th>' + (i === 2 ? 'B: DLQ, max ' + B.cfg.dlq.max : 'KEDA') + '</th></tr>';
+  if (i === 2) {
+    r('Backlog now', va.total, vb.total, 'low'); r('Healthy messages done', sa.healthyDone, sb.healthyDone, 'high'); r('Failed attempts', sa.errors, sb.errors, 'low');
+    r('Pod time wasted (s)', Math.round(sa.wasted), Math.round(sb.wasted), 'low'); r('Poison in DLQ', 0, sb.dlqPoison, null); r('Healthy lost to DLQ', 0, sb.dlqHealthy, 'low'); r('Avg latency (s)', n1(va.avgLat), n1(vb.avgLat), 'low');
+  } else {
+    r('Peak backlog', sa.peakVisible, sb.peakVisible, 'low'); r('Backlog now', va.total, vb.total, 'low');
+    r('Recovery after burst (s)', sa.recoveredAt !== null && sa.burstEndedAt !== null ? Math.round(sa.recoveredAt - sa.burstEndedAt) : 'not yet', sb.recoveredAt !== null && sb.burstEndedAt !== null ? Math.round(sb.recoveredAt - sb.burstEndedAt) : 'not yet', null);
+    r('Pod-seconds', Math.round(sa.podSeconds), Math.round(sb.podSeconds), 'low'); r('Est. cost', money(va.cost), money(vb.cost), 'low'); r('Replicas now', va.desired, vb.desired, null);
+  }
+  $('cmp').innerHTML = head + rows.join('');
+}
+
+/* ---------- finishing a round ---------- */
+function stars(n) { var h = ''; for (var i = 0; i < 3; i++) h += '<span class="star' + (i < n ? '' : ' off') + '">&#9733;</span>'; return h; }
+
+function finishRound() {
+  G.running = false; G.over = true; syncGoBtn();
+  pullEvents(); renderLog(); updateMetrics(); drawChart(); renderCmp(); if (G.round === 2) renderDlq();
+  var i = G.round, res = QC.score(i, G.sims); G.res = res;
+  var gain = Math.round(res.score * (G.hard ? 1.3 : 1)) + res.stars * 50, prev = G.save.res[i];
+  var firstTime = !prev; G.save.xp += firstTime ? gain : Math.max(0, gain - Math.round((prev.score || 0) * 1)) ;
+  if (!prev || res.score > prev.score) G.save.res[i] = { score: res.score, stars: res.stars, parts: res.parts, dims: res.dims, hard: G.hard };
+  G.save.maxUnlocked = Math.max(G.save.maxUnlocked, Math.min(3, i + 1));
+  var unlocked = checkAch(i, res); persist();
+  renderRounds(); renderHud();
+  buildDebrief(i, res, gain, unlocked);
+  say('Round finished: ' + res.score + ' points, ' + res.stars + ' of 3 stars. Scroll down for the debrief.', res.stars >= 2 ? 'good' : 'warn');
+  setTimeout(function () { try { $('debrief').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 250);
+}
+
+function grant(id, list) { if (!G.save.ach[id]) { G.save.ach[id] = 1; list.push(id); } }
+function checkAch(i, res) {
+  var list = [], a = G.sims[0], b = G.sims[1], st = a.s.stats;
+  if (i === 0) { if (a.remaining() === 0) grant('drain', list); if (res.stars === 3) grant('sized', list); }
+  if (i === 1) { if (G.usedCrash) grant('chaos', list); if (a.remaining() === 0 && a.cfg.vt >= 10 && a.cfg.vt <= 15) grant('lease', list); if (a.remaining() === 0 && st.dupEffects === 0) grant('idem', list); }
+  if (i === 2) { var sb = b.s.stats; if (sb.poisonEarly && sb.dlqPoisonEarly === sb.poisonEarly && sb.dlqHealthy === 0) grant('poison', list); }
+  if (i === 3) { if (res.score >= 560) grant('burst', list); if (res.parts.cost > 0.8) grant('thrift', list); }
+  if (G.iamFixed) grant('iam', list);
+  var all = G.save.res.every(function (r) { return r && r.stars === 3; }); if (all) grant('perfect', list);
+  if (list.length) toast('Trophy unlocked: ' + list.map(function (id) { return ACH.filter(function (x) { return x.id === id; })[0].n; }).join(', '));
+  return list;
+}
+function toast(t) { var d = el('div', 'toast', t); d.setAttribute('role', 'status'); document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
+
+function decisionText() {
+  if (!G.decisions.length) return 'You did not change any setting during the run.';
+  var d = G.decisions.slice(0, 6).map(function (x) { return 'at ' + Math.round(x.t) + ' s: ' + x.text; });
+  return 'Your changes: ' + d.join('; ') + (G.decisions.length > 6 ? '; and ' + (G.decisions.length - 6) + ' more.' : '.');
+}
+
+function buildDebrief(i, res, gain, unlocked) {
+  var A = G.sims[0], B = G.sims[1], sa = A.s.stats, c = A.cfg, S = {}, P = res.parts;
+  if (i === 0) {
+    var done = A.remaining() === 0, hist = A.s.history, peak = 0; hist.forEach(function (x) { peak = Math.max(peak, x.des); });
+    S.did = 'You started with 2 replicas and peaked at ' + peak + '. ' + decisionText();
+    S.happened = (done ? 'The queue drained in ' + mmss(A.s.t) + '.' : 'The time limit hit with ' + n0(A.remaining()) + ' messages left.') + ' You used ' + n0(sa.podSeconds) + ' pod-seconds (' + money(A.view().cost) + '); the floor is about ' + n0(1000 * c.proc) + '. Database load peaked at ' + G.peakSat + '%. ' + (G.peakSat >= 100 ? 'Whenever it hit 100% the database throttled the group, so pods beyond 10 added cost and no speed.' : 'The database never saturated, so more pods would still have helped.');
+    S.concept = '<code>ApproximateNumberOfMessagesVisible</code> is the work waiting; <code>ApproximateNumberOfMessagesNotVisible</code> is the work pods are holding. More replicas multiply consumer throughput only until a shared dependency (database, API quota, CPU) becomes the bottleneck.';
+    S.prod = 'You would run <code>kubectl scale deployment/order-worker --replicas=10</code>, or let KEDA do it from queue depth (round 4). Check <code>aws sqs get-queue-attributes</code> and the <code>ApproximateAgeOfOldestMessage</code> metric to see if workers keep up.';
+    S.lesson = 'More pods is not more throughput. Find the downstream limit first, then size replicas to it.';
+  } else if (i === 1) {
+    var vt = c.vt, fin = A.remaining() === 0;
+    S.did = 'Final settings: visibility timeout ' + vt + ' s, idempotency ' + (c.idem ? 'on' : 'off') + ', crash rate ' + Math.round(c.crashProb * 100) + '%. ' + decisionText();
+    S.happened = (fin ? 'All messages finished in ' + mmss(A.s.t) + '.' : 'The round hit its time limit with ' + n0(A.remaining()) + ' messages unfinished, stuck in a redelivery loop.') + ' Pods crashed ' + sa.crashes + ' times; ' + n0(sa.expired) + ' messages reappeared; ' + n0(sa.retries) + ' retries. Duplicate side effects: ' + sa.dupEffects + ' (' + sa.dupPrevented + ' blocked). ' + (vt < 7.5 ? 'Your timeout was shorter than the 7.5 s slow jobs, so SQS handed live messages to other pods. ' : '') + (vt >= 30 ? 'A ' + vt + ' s timeout made crashed work wait that long before any pod could retry it. ' : '') + (!c.idem && sa.dupEffects > 0 ? 'Without an idempotency check each redelivery repeated the side effect.' : '');
+    S.concept = 'SQS standard queues deliver at least once. A received message is hidden for the visibility timeout, not removed; only <code>DeleteMessage</code> removes it. A pod can die after doing the work and before deleting, so the same message can run twice.';
+    S.prod = 'Set the timeout a little above your p99 job time, extend it with <code>ChangeMessageVisibility</code> for long jobs, and store an idempotency key (for example the order ID) with a conditional write such as DynamoDB <code>attribute_not_exists</code> before charging.';
+    S.lesson = 'Make the timeout slightly longer than your slowest normal job, and make the handler safe to run twice.';
+  } else if (i === 2) {
+    var sb = B.s.stats, mx = B.cfg.dlq.max;
+    S.did = 'Mode B used maxReceiveCount ' + mx + ' at the end. ' + decisionText();
+    S.happened = 'Mode A (no DLQ): ' + n0(sa.errors) + ' failed attempts burned ' + n0(sa.wasted) + ' s of pod time, and ' + A.view().total + ' messages were still waiting. Mode B: ' + sb.dlqPoison + ' of ' + sb.poisonArrived + ' poison messages were parked, backlog ' + B.view().total + ', and ' + n0(sb.wasted) + ' s of pod time wasted. ' + (sb.dlqHealthy ? sb.dlqHealthy + ' healthy messages were dead-lettered after failing from throttling, which is a false positive; you would redrive them later. ' : 'No healthy message was dead-lettered. ') + (mx >= 5 ? 'A limit of ' + mx + ' means each poison message holds a pod for about ' + (mx * 5) + ' s before it is parked, so isolation was slow.' : '');
+    S.concept = 'A redrive policy tells SQS to move a message to a dead-letter queue once its receive count reaches <code>maxReceiveCount</code>. That caps retries per message, isolates poison messages from healthy traffic, and keeps the failed message for investigation.';
+    S.prod = 'Attach the policy with <code>aws sqs set-queue-attributes</code>, keep DLQ retention longer than the source queue, alarm when the DLQ has any visible message, and use <code>start-message-move-task</code> to send messages back after the fix.';
+    S.lesson = 'Set maxReceiveCount high enough to ride out transient errors (often 3 to 5) and alarm on the DLQ so poison messages get fixed, not forgotten.';
+  } else {
+    var sbk = B.s.stats, k = B.cfg.keda, rec = sbk.recoveredAt !== null && sbk.burstEndedAt !== null ? Math.round(sbk.recoveredAt - sbk.burstEndedAt) : null;
+    S.did = 'KEDA settings: min ' + k.min + ', max ' + k.max + ', polling ' + k.poll + ' s, cooldown ' + k.cooldown + ' s, queueLength ' + k.target + ', IAM ' + (k.iam ? 'allowed' : 'denied') + '. Manual side: ' + A.s.desired + ' replicas. ' + decisionText();
+    S.happened = (B.s.kd.error ? 'KEDA could not call <code>sqs:GetQueueAttributes</code> (AccessDenied) and never scaled. ' : '') + 'KEDA side: peak backlog ' + n0(sbk.peakVisible) + ', ' + (rec !== null ? 'recovered ' + rec + ' s after the burst' : 'not recovered by the end') + ', ' + n0(sbk.podSeconds) + ' pod-seconds (' + money(B.view().cost) + '). Manual side: peak ' + n0(sa.peakVisible) + ', ' + n0(sa.podSeconds) + ' pod-seconds (' + money(A.view().cost) + '). Scale-out is stepwise (at most max(4, current) pods per check) and each new pod needs 8 s, so some backlog is unavoidable; ' + (k.poll >= 30 ? 'a ' + k.poll + ' s polling interval stretched that delay. ' : '') + (k.max < 25 ? 'A max of ' + k.max + ' is below the 25 pods the burst needs. ' : '') + (k.cooldown >= 120 ? 'The long cooldown kept pods (and cost) after the burst.' : '');
+    S.concept = 'KEDA\'s <code>aws-sqs-queue</code> scaler reads visible plus in-flight messages, divides by <code>queueLength</code>, and feeds the result to a Horizontal Pod Autoscaler it manages. It can scale to zero. <code>queueLength</code> is a target backlog per pod, not a throughput figure, and the role KEDA uses needs <code>sqs:GetQueueAttributes</code>.';
+    S.prod = 'A <code>ScaledObject</code> with <code>pollingInterval</code>, <code>cooldownPeriod</code>, min and max, an IRSA or Pod Identity role for the operator, and enough node capacity (Karpenter or Cluster Autoscaler) for the pods KEDA asks for.';
+    S.lesson = 'Autoscaling reacts after the queue grows. Keep a floor for latency-sensitive traffic, poll fast, set queueLength from measured per-pod throughput, and cap max to what nodes and downstreams can take.';
+  }
+  var labels = { speed: 'Drain speed', cost: 'Cost efficiency', reliability: 'No duplicates', retries: 'Retry discipline', healthy: 'Healthy messages done', isolation: 'Poison isolated', falsePos: 'No false dead-letters', backlog: 'Low backlog', recovery: 'Fast recovery' };
+  var bars = Object.keys(res.parts).map(function (k2) { var v = res.parts[k2]; return '<div class="bar"><span>' + (labels[k2] || k2) + '</span><span class="tr"><i style="width:' + Math.round(clamp(v, 0, 1) * 100) + '%"></i></span><span class="pc">' + pct(v) + '</span></div>'; }).join('');
+  var next = i < 3 ? '<button class="btn primary" type="button" data-act="next">Next round</button>' : '<button class="btn primary" type="button" data-act="final">See my scorecard</button>';
+  var ach = unlocked.length ? '<p class="clab" style="margin-top:8px">New trophies: ' + unlocked.map(function (id) { return ACH.filter(function (x) { return x.id === id; })[0].n; }).join(', ') + '</p>' : '';
+  var d = $('debrief');
+  d.innerHTML = '<div class="big"><span class="num">' + res.score + '</span><span class="clab">points</span><span style="font-size:24px">' + stars(res.stars) + '</span><span class="clab">+' + gain + ' XP' + (G.hard ? ' (hard bonus)' : '') + '</span></div>' + ach +
+    '<div class="bars">' + bars + '</div>' +
+    '<h2>Debrief: ' + RM[i].title + '</h2><div class="dgrid"><div class="dsec"><h4>What you did</h4><p>' + S.did + '</p></div><div class="dsec"><h4>What happened</h4><p>' + S.happened + '</p></div><div class="dsec"><h4>The concept</h4><p>' + S.concept + '</p></div><div class="dsec"><h4>In production</h4><p>' + S.prod + '</p></div></div>' +
+    '<div class="dsec"><h4>Remember this</h4><p style="font-size:16px"><b style="font-weight:600">' + S.lesson + '</b></p></div>' +
+    '<div class="crow" style="margin-top:14px"><button class="btn" type="button" data-act="retry">Retry this round</button>' + next + '<button class="btn real" type="button" data-act="guide">How it works for real</button></div>';
+  d.hidden = false;
+}
+
+function showFinal() {
+  var R = G.save.res, f = $('final');
+  if (!R.every(function (r) { return r; })) { say('Finish all four rounds to unlock the scorecard.', 'warn'); return; }
+  function av(x, y) { return ((x == null ? 0 : x) + (y == null ? 0 : y)) / 2; }
+  var d = { scale: av(R[0].dims.scale, R[3].dims.scale), rel: av(R[1].dims.reliability, R[2].dims.reliability), retry: av(R[1].dims.retry, R[2].dims.retry), cost: av(R[0].dims.cost, R[3].dims.cost) };
+  var total = Math.round((R[0].score + R[1].score + R[2].score + R[3].score) / 40), grade = total >= 90 ? 'S' : total >= 80 ? 'A' : total >= 65 ? 'B' : total >= 50 ? 'C' : 'D';
+  var verdicts = { S: 'You could carry the pager for this system.', A: 'Solid operator. A few settings left some performance or money on the table.', B: 'You understand the moving parts. Tune the weak dimension below and try again.', C: 'The basics landed. Replay the rounds on Normal and read the debriefs.', D: 'Rough first run. Every round teaches one rule; retry round by round.' };
+  var rows = [['Scaling efficiency', d.scale, 'Rounds 1 and 4: speed and backlog against pods used'], ['Reliability', d.rel, 'Rounds 2 and 3: duplicates and healthy messages saved'], ['Retry handling', d.retry, 'Rounds 2 and 3: retry volume and poison isolation'], ['Cost awareness', d.cost, 'Rounds 1 and 4: pod-seconds against the minimum']];
+  var weakest = rows.slice().sort(function (a, b) { return a[1] - b[1]; })[0];
+  f.innerHTML = '<h2>Cloud engineer scorecard</h2><div class="big"><span class="grade">' + grade + '</span><span class="num">' + total + '</span><span class="clab">of 100 &middot; ' + verdicts[grade] + '</span></div>' +
+    '<div class="bars">' + rows.map(function (r) { return '<div class="bar"><span>' + r[0] + '</span><span class="tr"><i style="width:' + Math.round(clamp(r[1], 0, 1) * 100) + '%"></i></span><span class="pc">' + pct(r[1]) + '</span></div>'; }).join('') + '</div>' +
+    '<p class="clab">Weakest area: <b style="color:var(--text)">' + weakest[0] + '</b>. ' + weakest[2] + '.</p>' +
+    '<div class="clab" style="margin-top:12px">Round scores: ' + R.map(function (r, i) { return (i + 1) + ': ' + r.score + (r.hard ? ' (hard)' : ''); }).join(' &middot; ') + '</div>' +
+    '<div class="ach">' + ACH.map(function (a) { return '<div class="' + (G.save.ach[a.id] ? 'got' : '') + '"><b>' + (G.save.ach[a.id] ? '&#10003; ' : '') + a.n + '</b><span>' + a.d + '</span></div>'; }).join('') + '</div>' +
+    '<div class="crow" style="margin-top:14px"><button class="btn primary" type="button" data-act="hardrun">Replay on Hard</button><button class="btn" type="button" data-act="toR1">Back to round 1</button><button class="btn real" type="button" data-act="guide">How it works for real</button></div>';
+  f.hidden = false;
+  try { f.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+}
+
+/* ---------- header and round chips ---------- */
+function renderRounds() {
+  var nav = $('rounds'), h = '';
+  for (var i = 0; i < 4; i++) {
+    var r = G.save.res[i], locked = i > G.save.maxUnlocked;
+    h += '<button type="button" class="rchip' + (i === G.round ? ' on' : '') + (locked ? ' lock' : '') + '" data-round="' + i + '"' + (locked ? ' aria-disabled="true"' : '') + '><span class="n">ROUND ' + (i + 1) + '</span><span class="t">' + RM[i].title + '</span><span class="s">' + (r ? stars(r.stars) + ' ' + r.score : (locked ? 'locked' : 'not played')) + '</span></button>';
+  }
+  nav.innerHTML = h;
+}
+function renderHud() {
+  var xp = G.save.xp, lvl = Math.floor(xp / 600) + 1, sum = 0; G.save.res.forEach(function (r) { if (r) sum += r.score; });
+  $('lvl').textContent = lvl; $('xp').textContent = n0(xp) + ' XP'; $('xpb').style.width = ((xp % 600) / 6) + '%'; $('tot').textContent = n0(sum);
+  var cnt = 0; ACH.forEach(function (a) { if (G.save.ach[a.id]) cnt++; }); $('achN').textContent = cnt + '/' + ACH.length;
+}
+function showAch() {
+  var f = $('final');
+  f.innerHTML = '<h2>Trophies</h2><div class="ach">' + ACH.map(function (a) { return '<div class="' + (G.save.ach[a.id] ? 'got' : '') + '"><b>' + (G.save.ach[a.id] ? '&#10003; ' : '') + a.n + '</b><span>' + a.d + '</span></div>'; }).join('') + '</div>';
+  f.hidden = false; try { f.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+}
+
+/* ---------- guide ---------- */
+function openGuide(on) {
+  $('guideView').hidden = !on; $('gameView').hidden = on;
+  if (on) { G.wasRunning = G.running; G.running = false; syncGoBtn(); window.scrollTo(0, 0); } else { window.scrollTo(0, 0); }
+}
+function buildGuide() {
+  var pres = document.querySelectorAll('pre[data-code]');
+  for (var i = 0; i < pres.length; i++) pres[i].textContent = GUIDE_CODE[pres[i].getAttribute('data-code')];
+  var names = ['Architecture', 'Lifecycle', 'Deployment', 'KEDA YAML', 'IAM access', 'Permissions', 'DLQ', 'Idempotency', 'Commands', 'Production'];
+  $('gnav').innerHTML = names.map(function (n, k) { return '<button type="button" data-g="g' + (k + 1) + '">' + (k + 1) + '. ' + n + '</button>'; }).join('');
+}
+
+/* ---------- events ---------- */
+function bind() {
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var rc = t.closest('[data-round]'); if (rc) { var r = +rc.getAttribute('data-round'); if (r > G.save.maxUnlocked) { say('Finish the previous round to unlock this one.', 'warn'); return; } loadRound(r); return; }
+    var gb = t.closest('[data-g]'); if (gb) { var sec = $(gb.getAttribute('data-g')); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    var cp = t.closest('[data-copy]'); if (cp) { var txt = GUIDE_CODE[cp.getAttribute('data-copy')]; var ok = function () { cp.textContent = 'Copied'; setTimeout(function () { cp.textContent = 'Copy'; }, 1400); }; var fail = function () { var pre = cp.parentNode.querySelector('pre'); var rg = document.createRange(); rg.selectNodeContents(pre); var sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(rg); cp.textContent = 'Selected'; setTimeout(function () { cp.textContent = 'Copy'; }, 1400); }; try { navigator.clipboard.writeText(txt).then(ok, fail); } catch (er) { fail(); } return; }
+    var b = t.closest('button[data-act]');
+    if (b) {
+      var act = b.getAttribute('data-act');
+      if (act === 'next') { loadRound(Math.min(3, G.round + 1)); window.scrollTo(0, 0); return; }
+      if (act === 'retry') { loadRound(G.round); window.scrollTo(0, 0); return; }
+      if (act === 'final') { showFinal(); return; }
+      if (act === 'guide') { openGuide(true); return; }
+      if (act === 'hardrun') { G.hard = true; loadRound(0); window.scrollTo(0, 0); return; }
+      if (act === 'toR1') { loadRound(0); window.scrollTo(0, 0); return; }
+      onAct(act, { v: b.getAttribute('data-v'), d: b.getAttribute('data-d'), x: b.getAttribute('data-x'), btn: b, parent: b.parentNode });
+    }
+  });
+  $('controls').addEventListener('change', function (e) {
+    var t = e.target; if (t.type === 'checkbox') onAct(t.getAttribute('data-act'), { checked: t.checked });
+  });
+  $('controls').addEventListener('input', function (e) { var t = e.target; if (t.type === 'range') onAct(t.getAttribute('data-act'), { value: t.value }); });
+  $('btnReal').addEventListener('click', function () { openGuide(true); });
+  $('btnBack').addEventListener('click', function () { openGuide(false); });
+  $('btnAch').addEventListener('click', showAch);
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { resizeAll(); drawChart(); }, 120); });
+  if (window.ResizeObserver) new ResizeObserver(function () { clearTimeout(rt); rt = setTimeout(function () { resizeAll(); drawChart(); }, 120); }).observe($('gameView'));
+}
+
+
+/* ---------- starfield ---------- */
+(function () {
+  var cv = $('stars'); if (!cv || !cv.getContext) return;
+  var cx = cv.getContext('2d'); if (!cx) return;
+  var st = [], W = 0, H = 0, reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  function size() { W = window.innerWidth; H = window.innerHeight; var d = Math.min(1.5, window.devicePixelRatio || 1); cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0); st = []; var n = Math.round(clamp(W * H / 9000, 60, 220)); for (var i = 0; i < n; i++) st.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.4 + 0.3, p: Math.random() * 6.28, sp: 0.4 + Math.random() * 1.2, c: ['#FFFFFF', '#BFD4FF', '#FFE2B0', '#C9B8FF'][i % 4] }); paint(0); }
+  function paint(t) { cx.clearRect(0, 0, W, H); for (var i = 0; i < st.length; i++) { var s = st[i]; cx.globalAlpha = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t / 1000 * s.sp + s.p)); cx.fillStyle = s.c; cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.2832); cx.fill(); } cx.globalAlpha = 1; }
+  var lastT = 0; function tick(t) { requestAnimationFrame(tick); if (reduce || t - lastT < 66) return; lastT = t; paint(t); }
+  size(); window.addEventListener('resize', size); requestAnimationFrame(tick);
+})();
+
+loadSave(); buildGuide(); bind(); loadRound(0); requestAnimationFrame(frame);
+window.__qc = { G: G, loadRound: loadRound, onAct: onAct, finishRound: finishRound, showFinal: showFinal, frame: frame };
+})();
+
+</script>
